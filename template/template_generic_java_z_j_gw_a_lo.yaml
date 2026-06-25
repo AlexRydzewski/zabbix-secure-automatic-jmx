@@ -1,0 +1,790 @@
+zabbix_export:
+  version: '7.4'
+  template_groups:
+    - uuid: 83a5ee7554b8414d8a283e40461c33a7
+      name: Templates/Applications/Java
+  templates:
+    - uuid: 76339d3d8dc44bfe8889a48eb3e940be
+      template: 'Template App Generic Java Z_J_gw_A_lo'
+      name: 'Template App Generic Java Z_J_gw_A_lo'
+      description: |
+        Generic JVM metrics through local zabbix-java-gateway and zabbix_java_gw_adapter (Z_J_gw_A_lo).
+        Based on Zabbix Generic Java JMX template; GC and MemoryPool use runtime jmx.discovery.
+
+        https://blog.zabbix.com/new-monitoring-possibilities-for-java-applications-in-zabbix-3-4/5972/
+        https://www.zabbix.com/documentation/current/en/manual/concepts/java
+        Discovery: zabbix_jvm_discovery + INSTANCE_COLLECTOR
+      groups:
+        - name: Templates/Applications/Java
+      discovery_rules:
+        - uuid: fb681785f8c44d979d9e04b6579530ef
+          name: 'JVM GC discovery'
+          type: TRAP
+          key: zabbix.jmx_jvm_gc.discovery
+          lifetime: 30d
+          enabled_lifetime_type: DISABLE_NEVER
+          description: |
+            https://www.freecodecamp.org/news/garbage-collection-in-java-what-is-gc-and-how-it-works-in-the-jvm/
+            https://www.javatpoint.com/types-of-garbage-collector-in-java
+            
+                Discovery data obtained with zabbix_jvm_discovery bash scenario.
+          item_prototypes:
+            - uuid: c2a56d2cbefe478a852f6b519576b631
+              name: '{#SERVERID},{#APPNAME}: gc {#JMXNAME} collections count'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXGCOBJ}\\\\",CollectionCount]"]'
+              history: 1w
+              value_type: FLOAT
+              trends: 4w
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: 'Java:Application'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: ed40fb1c066a445bb8aed58442b263aa
+              name: '{#SERVERID},{#APPNAME}: gc {#JMXNAME} collections time'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXGCOBJ}\\\\",CollectionTime]"]'
+              history: 1w
+              value_type: FLOAT
+              trends: 4w
+              units: s
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.001'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:GarbageCollector'
+                - tag: Application
+                  value: 'Java:Application'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: 2e46ef5d200e471ea54f1e151d5164ee
+              name: '{#SERVERID},{#APPNAME}: gc {#JMXNAME} Name'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXGCOBJ}\\\\",Name]"]'
+              history: 1h
+              value_type: CHAR
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:GarbageCollector'
+                - tag: Application
+                  value: 'Java:Application'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+        - uuid: e95d47b7f1864fc0a23acdd3890fbcc6
+          name: 'JVM MemoryPool discovery'
+          type: TRAP
+          key: zabbix.jmx_jvm_mp.discovery
+          lifetime: 30d
+          enabled_lifetime_type: DISABLE_NEVER
+          description: |
+            https://www.freecodecamp.org/news/garbage-collection-in-java-what-is-gc-and-how-it-works-in-the-jvm/
+            https://www.javatpoint.com/types-of-garbage-collector-in-java
+            
+                 Discovery data obtained with zabbix_jvm_discovery bash scenario.
+          item_prototypes:
+            - uuid: 3141146ef67241dba9fb2ee0fb4c18cf
+              name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} Name'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Name]"]'
+              history: 1h
+              value_type: CHAR
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:MemoryPool'
+                - tag: Application
+                  value: 'Java:Application'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: cae5e99f8013410facd12a3df5bb30b9
+              name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} committed'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.committed]"]'
+              history: 1w
+              trends: 4w
+              units: B
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:MemoryPool'
+                - tag: Application
+                  value: 'Java:Application'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: 13a2896386ca4db683a36493658d7ab3
+              name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} max'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.max]"]'
+              history: 1w
+              value_type: FLOAT
+              trends: 4w
+              units: B
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:MemoryPool'
+                - tag: Application
+                  value: 'Java:Application'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: 6500317096374136a1ee8906258df4aa
+              name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} used'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.used]"]'
+              history: 1w
+              trends: 4w
+              units: B
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:MemoryPool'
+                - tag: Application
+                  value: 'Java:Application'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+          trigger_prototypes:
+            - uuid: 96e1a20c306f4f5688a878d9fda1c0fc
+              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.used]"])>(last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.max]"])*0.95) and last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.max]"])>0 and not (find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Name]"],,"like","PS Eden Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Name]"],,"like","PS Survivor Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Name]"],,"like","G1 Eden Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Name]"],,"like","G1 Survivor Space")=1)'
+              name: '{#SERVERID},{#APPNAME}: 95% mp {#JMXNAME} used'
+              priority: AVERAGE
+              description: 'https://www.freecodecamp.org/news/garbage-collection-in-java-what-is-gc-and-how-it-works-in-the-jvm/'
+            - uuid: fc568d615b234148858563be44207af3
+              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.committed]"])=last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.max]"]) and not (find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Name]"],,"like","PS Eden Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Name]"],,"like","PS Survivor Space")=1 or  find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Name]"],,"like","PS Old Gen")=1)'
+              name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} fully committed'
+              priority: WARNING
+              description: 'https://www.freecodecamp.org/news/garbage-collection-in-java-what-is-gc-and-how-it-works-in-the-jvm/'
+          graph_prototypes:
+            - uuid: e49ff33cfe1540bfb5c6200a18dbf044
+              name: '{#SERVERID},{#APPNAME}: Memory Pool {#JMXNAME},Usage'
+              graph_items:
+                - color: 00FFFF
+                  item:
+                    host: 'Template App Generic Java Z_J_gw_A_lo'
+                    key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.max]"]'
+                - sortorder: '1'
+                  color: 00FFBF
+                  item:
+                    host: 'Template App Generic Java Z_J_gw_A_lo'
+                    key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.committed]"]'
+                - sortorder: '2'
+                  color: 2774A4
+                  item:
+                    host: 'Template App Generic Java Z_J_gw_A_lo'
+                    key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.used]"]'
+        - uuid: a759f5ea536b4272a6531ddbef01fa58
+          name: 'JVM instance discovery'
+          type: TRAP
+          key: zabbix.jvm.discovery
+          lifetime: 30d
+          enabled_lifetime_type: DISABLE_NEVER
+          description: |
+            Collecting trivial JVM metrics.
+            
+                Discovery data obtained with zabbix_jvm_discovery bash scenario.
+          item_prototypes:
+            - uuid: 738dbd156cf54fdca950f61926c6c264
+              name: '{#SERVERID},{#APPNAME}: cl Loaded Class Count'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=ClassLoading,LoadedClassCount]"]'
+              history: 1w
+              trends: 4w
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Classes'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: e239c822eee94e7db32dd68ba9557c3f
+              name: '{#SERVERID},{#APPNAME}: cl Total Loaded Class Count'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=ClassLoading,TotalLoadedClassCount]"]'
+              history: 1w
+              trends: 4w
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Classes'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: d8d5a10ce1af43f4a90151eaa6ab79bb
+              name: '{#SERVERID},{#APPNAME}: cl Unloaded Class Count'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=ClassLoading,UnloadedClassCount]"]'
+              history: 1w
+              trends: 4w
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Classes'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: b1d00db0702943748371bf169e5f5704
+              name: '{#SERVERID},{#APPNAME}: comp Name of the current JIT compiler'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Compilation,Name]"]'
+              delay: 1h
+              history: 1w
+              value_type: CHAR
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Compilation'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: bb25c07505bf4102880edf31431f2d0e
+              name: "{#SERVERID},{#APPNAME}:\tcomp Accumulated time spent in compilation"
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Compilation,TotalCompilationTime]"]'
+              history: 1w
+              trends: 4w
+              units: s
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.001'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Compilation'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: c78d46edb7d04ed898b3f73ad7007995
+              name: '{#SERVERID},{#APPNAME}: mem Heap Memory committed'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.committed]"]'
+              history: 1w
+              trends: 4w
+              units: B
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Memory'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: c234062a039341e0b13ff3b98139d1d4
+              name: '{#SERVERID},{#APPNAME}: mem Heap Memory max'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.max]"]'
+              delay: 1h
+              history: 1w
+              trends: 4w
+              units: B
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Memory'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: 891be5bce788423b8939ab1c5f3094e8
+              name: '{#SERVERID},{#APPNAME}: mem Heap Memory used'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.used]"]'
+              history: 1w
+              trends: 4w
+              units: B
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Memory'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: 5211d13d8d5448968ef0c90d4fa0644c
+              name: '{#SERVERID},{#APPNAME}: mem Non-Heap Memory committed'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,NonHeapMemoryUsage.committed]"]'
+              history: 1w
+              trends: 4w
+              units: B
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Memory'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: cbd34b41bec64804a7e1bb0e9c11488b
+              name: '{#SERVERID},{#APPNAME}: mem Non-Heap Memory max'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,NonHeapMemoryUsage.max]"]'
+              delay: 1h
+              history: 1w
+              value_type: FLOAT
+              trends: 4w
+              units: B
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Memory'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: b7ddaf7d668b40379527397e622eee15
+              name: '{#SERVERID},{#APPNAME}: mem Non-Heap Memory used'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,NonHeapMemoryUsage.used]"]'
+              history: 1w
+              trends: 4w
+              units: B
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Memory'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: ac5eb8996fb64983ae1a9c7de4140aae
+              name: '{#SERVERID},{#APPNAME}: mem Object Pending Finalization Count'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,ObjectPendingFinalizationCount]"]'
+              history: 1w
+              trends: 4w
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Memory'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: 719b70c76b834f27a92e634272cd65be
+              name: '{#SERVERID},{#APPNAME}: os Max File Descriptor Count'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=OperatingSystem,MaxFileDescriptorCount]"]'
+              delay: 1h
+              history: 1w
+              trends: 4w
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:OperatingSystem'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: 191328a90e53473eb5d5bdc68f3d6e2c
+              name: '{#SERVERID},{#APPNAME}: os Open File Descriptor Count'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=OperatingSystem,OpenFileDescriptorCount]"]'
+              history: 1w
+              trends: 4w
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:OperatingSystem'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: 00bf0506ca9240c2a4b88564c0fcdb6d
+              name: '{#SERVERID},{#APPNAME}: os Process CPU Load'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=OperatingSystem,ProcessCpuLoad]"]'
+              history: 1w
+              value_type: FLOAT
+              trends: 4w
+              units: '%'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+                - type: MULTIPLIER
+                  parameters:
+                    - '100'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:OperatingSystem'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+              trigger_prototypes:
+                - uuid: a1a6b20c54c24626af32cbe7dfec9b05
+                  expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=OperatingSystem,ProcessCpuLoad]"])>70'
+                  name: '{#SERVERID},{#APPNAME}: 70% os Process CPU Load'
+                  priority: WARNING
+                  description: |
+                    https://www.theserverside.com/answer/How-to-fix-high-Java-CPU-usage-problems
+                    https://krzysztofslusarski.github.io/2021/09/04/jmx.html
+                - uuid: 7ae4728d9bf64d169fb714f1a92f0efa
+                  expression: 'avg(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=OperatingSystem,ProcessCpuLoad]"],3m)>70'
+                  name: '{#SERVERID},{#APPNAME}: 70% os Process CPU Load, avg(3m)'
+                  priority: AVERAGE
+                  description: |
+                    https://www.theserverside.com/answer/How-to-fix-high-Java-CPU-usage-problems
+                    https://krzysztofslusarski.github.io/2021/09/04/jmx.html
+                    https://www.theserverside.com/answer/How-to-fix-high-Java-CPU-usage-problems
+            - uuid: 3f192174678643d8b592115b900d0176
+              name: '{#SERVERID},{#APPNAME}: jvm Uptime'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"]'
+              history: 1h
+              trends: 4w
+              units: s
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.001'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Runtime'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+              trigger_prototypes:
+                - uuid: 5ed54dada1294ddca7cfff6882e81621
+                  expression: 'nodata(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"],3m)=1 and nodata(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"],24h)=0'
+                  name: '{#SERVERID},{#APPNAME}: localhost JMX is not reachable'
+                  priority: AVERAGE
+                  manual_close: 'YES'
+                - uuid: bbd0c1f16e0c43eca11f37f39ad2e668
+                  expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"])<last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"],#2)'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"])>86400'
+                  name: '{#SERVERID},{#APPNAME}: restarted'
+                  priority: INFO
+                  description: 'The trigger will be deactivated automatically after 24 hours'
+                  manual_close: 'YES'
+            - uuid: 29d16a32cbd541269f6a6105df9eee90
+              name: '{#SERVERID},{#APPNAME}: jvm VmName'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,VmName]"]'
+              delay: 1h
+              history: 1w
+              value_type: CHAR
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Runtime'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: 68727530de214f28a4601e26a3d9a327
+              name: '{#SERVERID},{#APPNAME}: jvm Version'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,VmVersion]"]'
+              delay: 1h
+              history: 1w
+              value_type: CHAR
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Runtime'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: e336bb410c2341b098280501ec47934d
+              name: '{#SERVERID},{#APPNAME}: th Daemon Thread Count'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Threading,DaemonThreadCount]"]'
+              history: 1w
+              trends: 4w
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Threads'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: d7e9350b7c7c487cbe836d80ea98ff8b
+              name: '{#SERVERID},{#APPNAME}: th Peak Thread Count'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Threading,PeakThreadCount]"]'
+              history: 1w
+              trends: 4w
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Threads'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: 0e82771c35d144babf312cb124ca56b6
+              name: '{#SERVERID},{#APPNAME}: th Thread Count'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Threading,ThreadCount]"]'
+              history: 1w
+              trends: 4w
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Threads'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: 77777ab09bfb4659ba675e01419b77a6
+              name: '{#SERVERID},{#APPNAME}: th Total Started Thread Count'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Threading,TotalStartedThreadCount]"]'
+              history: 1w
+              trends: 4w
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Threads'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+          trigger_prototypes:
+            - uuid: 9b86d5deecec4bb4ac5ba34c198c0687
+              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.used]"])>(last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.max]"])*0.95)'
+              name: '{#SERVERID},{#APPNAME}: 95% mem Heap Memory used'
+              priority: AVERAGE
+              description: 'Heap Memory, which is the storage for Java objects. The heap is the place in memory where your dynamically allocated objects live. Java''s heap is subject to garbage collection and the objects are usable directly.'
+            - uuid: 9255480b8f3f4f029bbb4cbf12c6bf94
+              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,NonHeapMemoryUsage.used]"])>(last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,NonHeapMemoryUsage.max]"])*0.95) and last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,NonHeapMemoryUsage.max]"])>0'
+              name: '{#SERVERID},{#APPNAME}: 95% mem Non-Heap Memory used'
+              priority: AVERAGE
+              description: 'Non-Heap Memory, which is used by Java to store loaded classes and other meta-data. other, JVM code itself, JVM internal structures, loaded profiler agent code and data, etc.'
+            - uuid: 08ff8e5ac36b4a868b093f30a49a4912
+              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=OperatingSystem,OpenFileDescriptorCount]"])>(last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=OperatingSystem,MaxFileDescriptorCount]"])*0.95)'
+              name: '{#SERVERID},{#APPNAME}: 95% os Opened File Descriptor Count used'
+              priority: AVERAGE
+            - uuid: 65ccff552ced47fb99b58822e20097aa
+              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.committed]"])=last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.max]"])'
+              name: '{#SERVERID},{#APPNAME}: mem Heap Memory fully committed'
+              priority: WARNING
+              description: |
+                https://stackoverflow.com/questions/68434657/java-memory-heap-and-non-heap-items
+                    Heap Memory, which is the storage for Java objects. The heap is the place in memory where your dynamically allocated objects live. Java's heap is subject to garbage collection and the objects are usable directly.
+                
+                https://www.ibm.com/docs/bg/sdk-java-technology/8?topic=sizing-initial-maximum-heap-sizes
+                    The Garbage Collector adapts heap size to keep occupancy between 40% and 70% for the following reasons:
+                    A heap occupancy greater than 70% causes more frequent GC cycles, which can reduce performance. You can alter this behavior by setting the -Xminf option.
+                    A heap occupancy less than 40% means infrequent GC cycles. However, these cycles are longer than necessary, causing longer pause times, which can reduce performance. You can alter this behavior by setting the -Xmaxf option.
+                    If you do not set an initial or maximum heap size, the GC expands and shrinks the heap as required. However, if you fix the heap size by using the -Xms and -Xmx options, the GC does not expand or shrink the Java™ heap. To optimize application performance and keep within the 40 - 70% range, the maximum heap size setting should therefore be at least 43% larger than the maximum occupancy of the application.
+                    Setting the minimum and maximum heap size to the same value is typically not a good idea because garbage collection is delayed until the heap is full. Therefore, the first time that the GC runs, the process can take longer. Also, the heap is more likely to be fragmented and require a heap compaction. Start your application with the minimum heap size that your application requires. When the GC starts up, it runs frequently and efficiently because the heap is small.
+                
+                https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/sizing.html
+                    If the value of the -Xms parameter is smaller than the value of the -Xmx parameter, than not all of the space that is reserved is immediately committed to the virtual machine. The uncommitted space is labeled "virtual" in this figure. The different parts of the heap (tenured generation and young generation) can grow to the limit of the virtual space as needed.
+                    For the consistent collector setting -Xms and -Xmx to the same value increases predictability by removing the most important sizing decision from the virtual machine. However, the virtual machine is then unable to compensate if you make a poor choice.
+              manual_close: 'YES'
+            - uuid: 641ef736f64e4e0aad1fc7f96ab679bb
+              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,NonHeapMemoryUsage.committed]"])=last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,NonHeapMemoryUsage.max]"])'
+              name: '{#SERVERID},{#APPNAME}: mem Non-Heap Memory fully committed'
+              priority: WARNING
+              description: 'Non-Heap Memory, which is used by Java to store loaded classes and other meta-data. other, JVM code itself, JVM internal structures, loaded profiler agent code and data, etc.'
+              manual_close: 'YES'
+            - uuid: a433319a7a3f44c3a431035aa5b2fb9d
+              expression: 'find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,VmName]"],,"like","Server")<>1 and last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"])<180'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"])>86400'
+              name: '{#SERVERID},{#APPNAME}: runs suboptimal VM type'
+              priority: INFO
+              description: 'The trigger will be deactivated automatically after 24 hours'
+              manual_close: 'YES'
+            - uuid: 8692f5d311b14fe2a49acce7ed4074cc
+              expression: 'find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Compilation,Name]"],,"like","Client")=1 and last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"])<180'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"])>86400'
+              name: '{#SERVERID},{#APPNAME}: uses suboptimal JIT compiler'
+              priority: INFO
+              description: 'The trigger will be deactivated automatically after 24 hours'
+              manual_close: 'YES'
+            - uuid: 451eaacd2905455e8fad137863938cb2
+              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"java.lang:type=GarbageCollector,name=ParNew\\\\",CollectionCount]"])<last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"java.lang:type=GarbageCollector,name=ConcurrentMarkSweep\\\\",CollectionCount]"])'
+              name: '{#SERVERID},{#APPNAME}: gc CMS in fire fighting mode'
+              priority: WARNING
+              description: 'CMS-only. https://blog.svedr.in/posts/problem-gc-concurrent-mark-sweep-in-fire-fighting-mode/'
+              manual_close: 'YES'
+          graph_prototypes:
+            - uuid: 1377e986001d49168b0264af217a9b37
+              name: '{#SERVERID},{#APPNAME}: Memory,HeapMemoryUsage'
+              graph_items:
+                - color: 00FFFF
+                  item:
+                    host: 'Template App Generic Java Z_J_gw_A_lo'
+                    key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.max]"]'
+                - sortorder: '1'
+                  color: 00FFBF
+                  item:
+                    host: 'Template App Generic Java Z_J_gw_A_lo'
+                    key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.committed]"]'
+                - sortorder: '2'
+                  color: 0D47A1
+                  item:
+                    host: 'Template App Generic Java Z_J_gw_A_lo'
+                    key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.used]"]'

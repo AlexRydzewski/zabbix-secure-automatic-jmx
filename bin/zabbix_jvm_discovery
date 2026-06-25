@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+# Generic JVM TRAP discovery: instance list from INSTANCE_COLLECTOR hook,
+# GC and MemoryPool via jmx.discovery through zabbix_java_gw_adapter.
+#
+#   zabbix_jvm_discovery [--discovery] [--json] [-c agent.conf]
+#
+# Configure: /etc/default/zabbix_jvm_discovery
+# Required:  INSTANCE_COLLECTOR=/path/to/collect-instances.sh
+
+VERSION="1.0.0"
+INSTALL_LIB="${ZABBIX_JVM_DISCOVERY_LIB:-/usr/local/lib/zabbix-jvm-discovery}"
+
+_action=""
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --discovery|-d) _action=discovery ;;
+        --json|-j) _jvm_json_only=1 ;;
+        -c) shift; ZABBIX_AGENT_CONFIG="$1" ;;
+        -h|--help)
+            cat <<EOF
+$(basename "$0") [--discovery] [--json] [-c agent.conf]
+
+  INSTANCE_COLLECTOR  bash file defining jvm_discovery_collect_instances()
+  /etc/default/zabbix_jvm_discovery  optional overrides
+EOF
+            exit 0 ;;
+        -v|--version) echo "zabbix_jvm_discovery $VERSION"; exit 0 ;;
+        *) echo "Unknown option: $1" >&2; exit 1 ;;
+    esac
+    shift
+done
+
+[ -z "$_action" ] && _action=discovery
+
+_core="${INSTALL_LIB}/jvm-discovery-core.sh"
+[ -f "$_core" ] || _core="$(cd "$(dirname "$0")/.." && pwd)/lib/jvm-discovery-core.sh"
+[ -f "$_core" ] || { echo "jvm-discovery-core.sh not found" >&2; exit 1; }
+# shellcheck source=lib/jvm-discovery-core.sh
+. "$_core"
+
+jvm_discovery_load_config
+[ "$_jvm_json_only" -eq 0 ] && { [ -x "$ZABBIX_SENDER" ] || exit 1; }
+
+[ -n "$INSTANCE_COLLECTOR" ] && [ -f "$INSTANCE_COLLECTOR" ] || {
+    echo "INSTANCE_COLLECTOR is not set or file missing" >&2
+    exit 1
+}
+
+jvm_discovery_check_adapter || true
+# shellcheck source=/dev/null
+. "$INSTANCE_COLLECTOR"
+jvm_discovery_collect_instances
+
+jvm_discovery_send_all
+exit 0
