@@ -1,0 +1,246 @@
+h1. Strict Secure JMX monitoring with Zabbix
+
+{{toc}}
+
+bq. *Suggested wiki page name:* @Strict_Secure_JMX_monitoring_with_Zabbix@
+*Technical pattern:* @Z_J_gw_A_lo@ (Zabbix + Java gateway + Active agent + localhost).
+Canonical method description for the *generic JVM monitoring package* (git: @docs/STRICT-SECURE-JMX-MONITORING.md@ in this repository).
+Link from other pages: @[[Strict_Secure_JMX_monitoring_with_Zabbix]]@ or @[[Strict_Secure_JMX_monitoring_with_Zabbix#Architecture]]@.
+Redmine source file: @docs/redmine/strict-secure-jmx-monitoring-zabbix.textile@
+
+---
+
+h2. Purpose
+
+*Strict Secure JMX monitoring with Zabbix* is the standard approach for Java applications when:
+
+* JMX is bound to *localhost only* (recommended for security);
+* one physical host may run *several JVM instances*;
+* metrics must be collected *without exposing JMX* on a network-reachable address.
+
+Use this page as the *general reference*. Product-specific details (init scripts, business JMX beans, trap key prefixes) belong in application wiki pages that link back here.
+
+*Technical pattern: Z_J_gw_A_lo* -- *Z*abbix + *J*ava gateway + *A*ctive agent + *lo*calhost.
+
+---
+
+h2. Problem
+
+h3. Why stock Zabbix JMX does not fit
+
+|_. Fact |_. Consequence |
+| @zabbix-java-gateway@ is *passive* | The Zabbix server connects to the gateway; the gateway connects to the application JMX port. |
+| Production JVMs use @jmxremote.local.only=true@ | JMX accepts connections only on the application host (loopback). |
+| Remote pollers cannot safely use localhost JMX | Server-side JMX items cannot reach @127.0.0.1@ on a remote application host. |
+
+Opening JMX on @0.0.0.0@ or on the host's public IP is a *security risk* and is *not* the chosen approach.
+
+h3. Additional complications
+
+* *Multiple JVMs* on one host -- each needs its own JMX port and discovery metadata.
+* *GC and memory pool names vary* (CMS, G1, ZGC, ...) -- templates must not hardcode collector or pool names.
+* *Application-specific JMX beans* (business metrics) are separate from generic JVM metrics.
+
+---
+
+h2. Solution overview
+
+All JMX access stays *on the application host*. Metrics leave the host through the *Zabbix agent* (active checks and TRAP discovery).
+
+<pre>
+┌─────────────────────────────────────────────────────────────────┐
+│ Application host                                                │
+│                                                                 │
+│  ┌─────────────┐   localhost    ┌──────────────────────┐       │
+│  │ Java app(s) │◄── JMX :901x ───│ zabbix-java-gateway  │       │
+│  │ local.only  │                  │ :10052               │       │
+│  └─────────────┘                  └──────────┬───────────┘       │
+│                                              │ gateway protocol  │
+│                                   ┌──────────▼───────────┐       │
+│                                   │ zabbix_java_gw_adapter│       │
+│                                   └──────────┬───────────┘       │
+│                                              │ UserParameter     │
+│                                   ┌──────────▼───────────┐       │
+│                                   │ zabbix-agent (active) │       │
+│                                   └──────────┬───────────┘       │
+│                                              │                   │
+│  ┌──────────────────────┐                   │                   │
+│  │ zabbix_jvm_discovery │── zabbix_sender ──┘ (TRAP LLD)        │
+│  │ + INSTANCE_COLLECTOR │                                       │
+│  └──────────────────────┘                                       │
+└─────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+                           Zabbix server
+</pre>
+
+*Result:* full JMX visibility for monitoring, *no* JMX port open to the network.
+
+---
+
+h2. Architecture
+
+h3. Metric collection path (active checks)
+
+# Zabbix server schedules an *active* item, e.g. @z_java_gw_adapter_lo[{#JMXPORT},"jmx[...]"]@.
+# @zabbix-agent@ runs the UserParameter -> @zabbix_java_gw_adapter@.
+# The adapter speaks the *Zabbix Java gateway binary protocol* to @localhost:10052@.
+# @zabbix-java-gateway@ reads JMX from @localhost:{#JMXPORT}@.
+# JSON result returns to Zabbix; template preprocessing extracts the value.
+
+The same path supports @jmx.discovery[...]@ for runtime bean enumeration (GC, memory pools).
+
+*Reference:* "New monitoring possibilities for Java applications in Zabbix 3.4":https://blog.zabbix.com/new-monitoring-possibilities-for-java-applications-in-zabbix-3-4/5972/
+
+h3. Discovery path (TRAP / low-level discovery)
+
+<pre>
+zabbix_jvm_discovery (cron/timer)
+  -> INSTANCE_COLLECTOR   (application-specific: find running JVMs, ports, IDs)
+  -> jvm-discovery-core   (generic: GC/MP via jmx.discovery)
+  -> zabbix_sender        (TRAP keys -> Zabbix LLD rules)
+</pre>
+
+Discovery must run *independently* of application start/stop scripts.
+
+h3. Layering: generic vs application-specific
+
+|_. Layer |_. Scope |_. Provided by |
+| *Generic JVM* | Heap, threads, GC, memory pools | *This repository* |
+| *Application* | Business MBeans, custom trap keys | Application integration repo |
+
+Only *INSTANCE_COLLECTOR* and *application Zabbix templates* are product-specific.
+
+---
+
+h2. This repository (generic package)
+
+|_. Path |_. Role |
+| @bin/zabbix_java_gw_adapter@ | Gateway protocol client |
+| @bin/zabbix_jvm_discovery@ | TRAP discovery entry point |
+| @lib/jvm-discovery-core.sh@ | Shared discovery logic |
+| @zabbix_agentd.d/zabbix_java_gw_adapter_lo.conf@ | UserParameter for active checks |
+| @template/template_generic_java_z_j_gw_a_lo.yaml@ | Zabbix template *Template App Generic Java Z_J_gw_A_lo* |
+| @etc/default/zabbix_jvm_discovery.example@ | Config sample |
+| @cron/zabbix_jvm_discovery.cron@ | Optional cron snippet |
+| @examples/instance-collector.example.sh@ | Collector contract example |
+| @install.sh@ | Host installation |
+
+h3. Default TRAP keys
+
+|_. Key |_. Content |
+| @zabbix.jvm.discovery@ | @{#SERVERID}@, @{#APPNAME}@, @{#JMXPORT}@, ... |
+| @zabbix.jmx_jvm_gc.discovery@ | @{#JMXNAME}@, @{#JMXGCOBJ}@ |
+| @zabbix.jmx_jvm_mp.discovery@ | @{#JMXNAME}@, @{#JMXMPOBJ}@ |
+
+h3. Instance collector contract
+
+<pre><code class="bash">
+jvm_discovery_collect_instances() {
+    jvm_discovery_add_instance SERVER_ID APP_NAME APP_DIR PID JMXPORT [HOST]
+}
+</code></pre>
+
+See @examples/instance-collector.example.sh@.
+
+---
+
+h2. JVM / JMX configuration (production)
+
+|_. Property |_. Typical value |_. Notes |
+| @com.sun.management.jmxremote@ | enabled | Required |
+| @com.sun.management.jmxremote.local.only@ | @true@ | *Local connections only* |
+| @com.sun.management.jmxremote.port@ | per-instance port | e.g. pool @9010-9019@ |
+| @com.sun.management.jmxremote.authenticate@ | @false@ | Acceptable on loopback-only |
+| @com.sun.management.jmxremote.ssl@ | @false@ | TLS optional on localhost |
+
+Monitoring connects to @localhost:{port}@ from the *same host*.
+
+---
+
+h2. Zabbix item patterns
+
+h3. Generic JVM
+
+<pre>
+z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.used]"]
+</pre>
+
+Preprocessing: JSONPath -> @$.data[0].value@
+
+h3. Application MBean (separate template)
+
+<pre>
+z_java_gw_adapter_lo[{#JMXPORT},"jmx[net.example.app:name=usersOnline,Value]"]
+</pre>
+
+h3. Codahale / Dropwizard
+
+|_. Type |_. Attributes |
+| *Gauge* | @Value@ |
+| *Histogram* | @99thPercentile@, @Max@, @Count@, ... |
+| *Timer* | @99thPercentile@, @Max@, @OneMinuteRate@, ... |
+
+GC/MP discovery -- do *not* hardcode @ConcurrentMarkSweep@, @G1 Eden Space@, etc.
+
+---
+
+h2. Deployment checklist
+
+# Install @zabbix-java-gateway@; confirm @localhost:10052@.
+# Run @sudo ./install.sh@ from this repository.
+# Set @INSTANCE_COLLECTOR@ in @/etc/default/zabbix_jvm_discovery@.
+# Install application instance collector (separate integration package).
+# Enable @cron/zabbix_jvm_discovery.cron@ (or systemd timer).
+# @systemctl restart zabbix-agent zabbix-java-gateway@
+# Import @template/template_generic_java_z_j_gw_a_lo.yaml@ in Zabbix.
+# Link *Template App Generic Java Z_J_gw_A_lo* to hosts.
+# Verify:
+#* @zabbix_jvm_discovery --json@ lists running instances;
+#* heap metrics and LLD look correct.
+
+---
+
+h2. Debug access (not for production monitoring)
+
+* *On-server:* @jconsole 127.0.0.1:{jmx_port}@ with @local.only=true@.
+* *SSH tunnel:* temporary debug JVM profile only; revert after session.
+
+---
+
+h2. Out of scope (this package)
+
+|_. Topic |_. Notes |
+| Application business metrics | Separate template in app repo |
+| Non-JMX agent metrics | Separate templates |
+| JMX Exporter / Prometheus | Different architecture |
+| Per-method timer MBeans | Use aggregates unless method LLD is designed |
+
+---
+
+h2. Related wiki pages
+
+|_. Page |_. Content |
+| [[Strict_Secure_JMX_monitoring_with_Zabbix]] | This page (canonical method) |
+| [[Application_monitoring_integration]] | Your product: collector, trap keys, app template |
+| [[Java_JMX_debug_SSH_tunnel]] | Debug-only SSH tunnel procedure |
+
+---
+
+h2. External references
+
+* "Zabbix Java gateway":https://www.zabbix.com/documentation/current/en/manual/concepts/java
+* "JMX low-level discovery examples":https://www.zabbix.com/documentation/current/en/manual/discovery/low_level_discovery/examples/jmx
+* "Zabbix blog: JMX via Java gateway from the agent":https://blog.zabbix.com/new-monitoring-possibilities-for-java-applications-in-zabbix-3-4/5972/
+
+---
+
+h2. Glossary
+
+|_. Term |_. Meaning |
+| *Strict Secure JMX monitoring with Zabbix* | Localhost-only JMX; metrics via Zabbix agent + local Java gateway |
+| *Z_J_gw_A_lo* | Technical pattern: Zabbix + Java gateway + Active agent + localhost |
+| *TRAP discovery* | LLD fed by @zabbix_sender@ |
+| *INSTANCE_COLLECTOR* | App script listing running JVMs |
+| *Adapter* | @zabbix_java_gw_adapter@ |
+| *local.only* | JVM flag: JMX local connections only |

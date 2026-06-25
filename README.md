@@ -4,6 +4,9 @@ Self-contained package for pattern **Z_J_gw_A_lo** (Zabbix + Java gateway + Acti
 
 Install on any Java host with `jmxremote.local.only=true`. Wire your application with an `INSTANCE_COLLECTOR` hook only.
 
+**Method description (canonical):** [docs/STRICT-SECURE-JMX-MONITORING.md](docs/STRICT-SECURE-JMX-MONITORING.md)  
+**Redmine wiki (Textile):** [docs/redmine/strict-secure-jmx-monitoring-zabbix.textile](docs/redmine/strict-secure-jmx-monitoring-zabbix.textile)
+
 ## Layout
 
 ```
