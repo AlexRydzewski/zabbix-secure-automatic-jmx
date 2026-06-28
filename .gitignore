@@ -2,7 +2,5 @@
 *.swp
 *.bak
 .DS_Store
-# install-time symlink, not source
-bin/zabbix_jvm_discovery
 # local/private reference material — not for public repo
 anysources/

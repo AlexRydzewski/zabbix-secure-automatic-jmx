@@ -7,8 +7,10 @@ zabbix_export:
     - uuid: 76339d3d8dc44bfe8889a48eb3e940be
       template: 'Template App Generic Java Z_J_gw_A_lo'
       name: 'Template App Generic Java Z_J_gw_A_lo'
+      version: '1.0.0'
       description: |
         Generic JVM metrics via z_java_gw_adapter_lo active items (Z_J_gw_A_lo pattern).
+        Template version: 1.0.0
 
         Escaping: zabbix_java_gw_adapter __esc_json JSON-escapes the logical jmx key in the
         gateway message body. That reduces escaped backslashes in item keys from four to two
@@ -20,7 +22,7 @@ zabbix_export:
 
         https://blog.zabbix.com/new-monitoring-possibilities-for-java-applications-in-zabbix-3-4/5972/
         https://www.zabbix.com/documentation/current/en/manual/concepts/java
-        Discovery: zabbix_jmx_discovery (well_known_java + custom + any_java bundles)
+        Discovery: standalone discovery scripts (well_known_java + custom bundles)
       groups:
         - name: Templates/Applications/Java
       discovery_rules:
@@ -31,7 +33,7 @@ zabbix_export:
           lifetime: 30d
           enabled_lifetime_type: DISABLE_NEVER
           description: |
-            JVM instances from zabbix_jmx_discovery TRAP (zabbix.jmx.jvm.discovery).
+            JVM instances from discovery TRAP (zabbix.jmx.jvm.discovery).
             Item prototypes: z_java_gw_adapter_lo — __esc_json in adapter; \\ before inner " in keys (§6).
           item_prototypes:
             - uuid: 738dbd156cf54fdca950f61926c6c264

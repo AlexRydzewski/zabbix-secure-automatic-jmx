@@ -1,11 +1,9 @@
 # /etc/cron.d/zabbix-jmx-discovery — example (standalone discovery script).
-# Install: install -m 644 cron/zabbix_jmx_discovery.cron /etc/cron.d/zabbix-jmx-discovery
+# Version: 1.0.0
+# Install: install -m 644 cron/zabbix-jmx-discovery.cron /etc/cron.d/zabbix-jmx-discovery
 #
 # One entry per product script (script calls zabbix_sender).
 # Examples ship --dry-run / --emit only; wire send in your copy before enabling cron.
-#
-# Optional later: single aggregator — docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md §4.0
-# * * * * * root /usr/local/bin/zabbix_jmx_discovery >/dev/null 2>&1
 #
 # zabbix-secure-automatic-jmx — Alexander Rydzewski <rydzewski.al@gmail.com>
 # https://github.com/AlexRydzewski/zabbix-secure-automatic-jmx

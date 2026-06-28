@@ -9,6 +9,7 @@
 #
 # Modified by: Alexander Rydzewski <rydzewski.al@gmail.com>
 #   https://github.com/AlexRydzewski/zabbix-secure-automatic-jmx (Z_J_gw_A_lo pattern)
+# Version: 1.0.0
 # Modifications:
 #   - Hardcode gateway to localhost:10052 (gateway co-located with agent on app host).
 #   - Args: <host> <jmx_port> <jmx_key> [username] [password] instead of six parameters
@@ -17,6 +18,7 @@
 #   - Optional JMX username/password appended to the request body when args 4/5 are set.
 #   - Trailing newline on output for UserParameter compatibility.
 #   - Overall timeout via ZABBIX_JAVA_GW_ADAPTER_TIMEOUT (default 30s); re-exec under timeout(1).
+#   - __valid_host / __valid_port: reject malformed host and JMX port before gateway I/O.
 #   - __esc_json: JSON-escape jmx key (and auth fields) once in the gateway message body.
 #     Adapter receives the logical jmx key from the agent; templates need fewer backslashes
 #     than when the adapter did not escape (typically \\ before inner " in item keys, not \\\\).
@@ -25,7 +27,16 @@
 #
 # Usage: zabbix_java_gw_adapter <host> <jmx_port> <jmx_key> [username] [password]
 
+readonly SCRIPT_VERSION='1.0.0'
+
 TIMEOUT="${ZABBIX_JAVA_GW_ADAPTER_TIMEOUT:-30}"
+
+case "${1:-}" in
+    -V|--version)
+        printf 'zabbix_java_gw_adapter %s (Z_J_gw_A_lo)\n' "$SCRIPT_VERSION"
+        exit 0
+        ;;
+esac
 
 if [ "${1:-}" != --internal ]; then
     if command -v timeout >/dev/null 2>&1; then
@@ -34,11 +45,37 @@ if [ "${1:-}" != --internal ]; then
 fi
 [ "${1:-}" = --internal ] && shift
 
-exec 3<>/dev/tcp/localhost/10052 || {
-    printf '{"response":"failed","error":"gateway unreachable"}\n'
+__fail() {
+    printf '{"response":"failed","error":"%s"}\n' "$1"
     exit 1
 }
 
+# Hostname or IPv4 for jmx_endpoint — no URI/JSON metacharacters.
+__valid_host() {
+    local h=$1
+    [ -n "$h" ] && [ "${#h}" -le 253 ] || return 1
+    case "$h" in
+        *[!a-zA-Z0-9._-]*) return 1 ;;
+    esac
+    return 0
+}
+
+# JMX port: decimal 1–65535 (leading-zero safe).
+__valid_port() {
+    local p=$1
+    [[ "$p" =~ ^[0-9]+$ ]] || return 1
+    (( 10#$p >= 1 && 10#$p <= 65535 )) || return 1
+    return 0
+}
+
+[ -z "${3:-}" ] && __fail "usage: $0 <host> <jmx_port> <jmx_key> [username] [password]"
+__valid_host "${1:-}" || __fail "invalid host"
+__valid_port "${2:-}" || __fail "invalid jmx port"
+
+exec 3<>/dev/tcp/localhost/10052 || __fail "gateway unreachable"
+
+# This hint reduces the number of escaped backslashes required in nested Zabbix Gateway queries
+# from four to two, making item definitions cleaner, more readable, and easier to organize.
 __esc_json() {
     local s=$1 out="" i c
     for ((i = 0; i < ${#s}; i++)); do
@@ -50,11 +87,6 @@ __esc_json() {
         esac
     done
     printf '%s' "$out"
-}
-
-[ -z "${3:-}" ] && {
-    printf '{"response":"failed","error":"usage: %s <host> <jmx_port> <jmx_key> [username] [password]"}\n' "$0"
-    exit 1
 }
 
 AUTH=""

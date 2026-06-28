@@ -2,6 +2,7 @@
 author: Alexander Rydzewski
 email: rydzewski.al@gmail.com
 repo: https://github.com/AlexRydzewski/zabbix-secure-automatic-jmx
+document_version: 1.0.0
 tags: [zabbix, jmx, java, monitoring, observability]
 ---
 
@@ -65,13 +66,13 @@ The name reflects the three main goals of the architecture:
 | `zabbix_java_gw_adapter` + agent UserParameter | Shared discovery library all scripts use |
 | Generic JVM Zabbix template + escaping rules | Product discovery shipped and wired by install |
 | Example scripts (`well-known-java`, `game-servers`) | Registry of bundles, enforced order, dedup in production |
-| `zabbix_jmx_discovery` as **optional sketch** | Aggregator as the normal cron entry |
+| Future aggregator sketch (not in repo) | Aggregator as the normal cron entry |
 
 **What you do in production today:** install the adapter and template; run **your** discovery script (or an adapted example) with `zabbix_sender`; keep product logic in product repos or host-specific copies.
 
 **What might become a framework later** — once discoveries accumulate on hosts and duplication starts to hurt:
 
-- One cron job / one aggregator (`zabbix_jmx_discovery` or a successor)
+- One cron job / one aggregator (not shipped — see §4.0)
 - A common `--emit` protocol (`INSTANCE`/`TRAP` lines), TRAP key naming, dedup by PID/port
 - Optional shared helpers instead of copy-paste between scripts
 - A documented bundle order (well-known → custom → fallback)
@@ -128,7 +129,7 @@ Reliable JMX monitoring requires knowing **which process** and **which port** is
                       Zabbix server (templates)
 ```
 
-Optional later: `zabbix_jmx_discovery` as a **single cron aggregator** over several `--emit` scripts (§4.0).
+Optional later: a **single cron aggregator** over several `--emit` scripts (§4.0).
 
 ### Responsibility split
 
@@ -157,12 +158,12 @@ Discovery scripts do **not** probe JMX beans for metrics. GC, memory pools, and 
 
 Example scripts ship with `--dry-run` and `--emit` (machine-readable `INSTANCE`/`TRAP` lines) so you can debug discovery and wire `zabbix_sender` directly in the script — as existing product scripts do.
 
-**When discoveries accumulate** (well-known Java plus several custom products on one host, multiple TRAP keys, dedup across bundles), it becomes reasonable to **unify**. That's the direction sketched in `zabbix_jmx_discovery`, and may eventually justify calling this a framework:
+**When discoveries accumulate** (well-known Java plus several custom products on one host, multiple TRAP keys, dedup across bundles), it becomes reasonable to **unify** — a possible future framework direction (§4.0):
 
 - One cron entry instead of many
 - Ordered bundle execution and skip-if-already-seen (PID / JMX port)
 - Shared TRAP key naming (`zabbix.jmx.<name>.discovery`) and JSON escaping
-- Optional wiring: `__jmx_discovery_load_emit` consumes `--emit` output from standalone scripts
+- Optional wiring: a shared loader consumes `--emit` output from standalone scripts
 
 ### 4.1 Minimum instance attributes
 
@@ -273,7 +274,7 @@ discovery.game-servers.example.sh --dry-run   # human-readable; lists each confi
 discovery.game-servers.example.sh --emit      # machine output: INSTANCE and TRAP lines (tab-separated)
 ```
 
-`--emit` line format (compatible with the optional future `__jmx_discovery_load_emit`):
+`--emit` line format (for a possible future aggregator):
 
 ```text
 INSTANCE	SERVER_ID	APP_NAME	APPDIR	PID	JMXPORT	HOST
@@ -291,7 +292,7 @@ TRAP	zabbix.jmx.game.discovery	{"{#APPDIR}":"…",…}
 
 #### Optional later (aggregation)
 
-When several discovery scripts run on the same host, pipe their `--emit` output through `zabbix_jmx_discovery` / `__jmx_discovery_load_emit` for one cron job and PID/port dedup (§4.0).
+When several discovery scripts run on the same host, a future aggregator could consume their `--emit` output for one cron job and PID/port dedup (§4.0).
 
 ### 4.5 Common production patterns
 
@@ -471,21 +472,22 @@ All items in `template_generic_java_z_j_gw_a_lo.yaml` use `z_java_gw_adapter_lo[
 
 ## 7. Repository layout
 
-| Path | Track | Role |
-|------|-------|------|
-| `bin/zabbix_java_gw_adapter` | yes | Gateway protocol client (**required**) |
-| `zabbix_agentd.d/zabbix_java_gw_adapter_lo.conf` | yes | UserParameter `z_java_gw_adapter_lo` |
-| `template/template_generic_java_z_j_gw_a_lo.yaml` | yes | Generic JVM Zabbix template |
-| `examples/well-known-java.example.sh` | yes | Well-known Java discovery example |
-| `examples/discovery.game-servers.example.sh` | yes | Multi-instance game-server example (§4.4) |
-| `cron/zabbix_jmx_discovery.cron` | yes | Cron example (`/etc/cron.d/`) |
-| `timers/zabbix-jmx-discovery.*.example` | yes | systemd timer + oneshot service example |
-| `install.sh` | yes | Install adapter, optional script, agent drop-in |
-| `docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md` | yes | **This file** — base documentation |
-| `docs/zabbix_java_gw_adapter-examples.md` | yes | Escaping cookbook (§6 detail) |
-| `README.md` | yes | Repo reference (index, install quick start) |
+| Path | Track | Version | Role |
+|------|-------|---------|------|
+| `bin/zabbix_java_gw_adapter` | yes | 1.0.0 | Gateway protocol client (**required**) |
+| `zabbix_agentd.d/zabbix_java_gw_adapter_lo.conf` | yes | 1.0.0 | UserParameter `z_java_gw_adapter_lo` |
+| `template/template_generic_java_z_j_gw_a_lo.yaml` | yes | 1.0.0 | Generic JVM Zabbix template |
+| `install.sh` | yes | 1.0.0 | Install adapter, agent drop-in, well-known example |
+| `examples/well-known-java.example.sh` | yes | 1.0.0 | Well-known Java discovery example |
+| `examples/discovery.game-servers.example.sh` | yes | 1.0.0 | Multi-instance game-server example (§4.4) |
+| `cron/zabbix-jmx-discovery.cron` | yes | 1.0.0 | Cron example (`/etc/cron.d/`) |
+| `timers/zabbix-jmx-discovery.*.example` | yes | 1.0.0 | systemd timer + oneshot service example |
+| `docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md` | yes | 1.0.0 | **This file** — base documentation |
+| `docs/zabbix_java_gw_adapter-examples.md` | yes | 1.0.0 | Escaping cookbook (§6 detail) |
+| `docs/TODO.md` | yes | 1.0.0 | Maintainer backlog and recommendations |
+| `README.md` | yes | — | Repo index (lists component versions) |
 
-Do **not** track the install-time symlink `bin/zabbix_jvm_discovery` (created by `install.sh`).
+**Versioning:** each component above carries its **own** version in the file (header, `version` field, or `--version` on scripts). `zabbix_export.version: '7.4'` in the template YAML is the **Zabbix server export format**, not a component version. Bump only the artifacts you change.
 
 ---
 
@@ -495,7 +497,7 @@ Do **not** track the install-time symlink `bin/zabbix_jvm_discovery` (created by
 2. `sudo ./install.sh` (adapter, template import path, optional well-known script).
 3. Wire **discovery** — standalone product script, or adapt `examples/discovery.game-servers.example.sh`; cron per script.
 4. `well-known-java.sh --dry-run` or your script's dry-run — verify instance rows and TRAP JSON.
-5. Enable schedule: `cron/zabbix_jmx_discovery.cron` or `timers/*.example` (one entry per product script).
+5. Enable schedule: `cron/zabbix-jmx-discovery.cron` or `timers/*.example` (one entry per product script).
 6. Restart `zabbix-agent` and `zabbix-java-gateway`.
 7. Import the JVM template; link it to the host.
 8. Add application template(s) and matching discovery TRAP keys.
@@ -542,7 +544,7 @@ The sample UserParameter in `zabbix_agentd.d/zabbix_java_gw_adapter_lo.conf` pas
 | **1** | **Zabbix templates** — metrics, `jmx.discovery` LLD, triggers (`z_java_gw_adapter_lo` keys). |
 | **2** | **Standalone discovery scripts** — well-known + custom patterns; each sends TRAP via `zabbix_sender`. |
 | **3** | **Custom scripts per product** — slim legacy scripts (drop in-script bean discovery); templates collect metrics. |
-| **4** | **Toward a framework** — aggregator, bundle order, dedup (`zabbix_jmx_discovery` sketch); only when script count on a host justifies unification. |
+| **4** | **Toward a framework** — aggregator, bundle order, dedup; only when script count on a host justifies unification. |
 
 ---
 
@@ -552,9 +554,8 @@ The sample UserParameter in `zabbix_agentd.d/zabbix_java_gw_adapter_lo.conf` pas
 |------|---------|
 | **Z_J_gw_A_lo** | Zabbix + Java gateway + Active agent + localhost |
 | **Discovery script** | Standalone script that finds instances and sends TRAP LLD |
-| **Discovery engine** | Optional `zabbix_jmx_discovery` — sketch for future unification, not part of today's minimum deploy |
+| **Discovery engine** | Optional future aggregator — not part of today's minimum deploy |
 | **TRAP LLD** | LLD fed by `zabbix_sender`, not server-side polling; keys `zabbix.jmx.<name>.discovery` |
-| **YOUR DISCOVERY** | Block at end of `zabbix_jmx_discovery` for wiring `--emit` scripts when using the aggregator |
 
 ---
 

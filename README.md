@@ -8,6 +8,24 @@ Reference kit for pattern **`Z_J_gw_A_lo`** — Zabbix + Java gateway + **A**cti
 | **Repository** | [github.com/AlexRydzewski/zabbix-secure-automatic-jmx](https://github.com/AlexRydzewski/zabbix-secure-automatic-jmx) |
 | **Tags** | zabbix, jmx, java, monitoring, observability |
 
+Each tracked component has its **own version** (currently **1.0.0** where noted below). Bump only the artifact you change.
+
+## Component versions
+
+| Component | Version |
+|-----------|---------|
+| `bin/zabbix_java_gw_adapter` | 1.0.0 (`--version`) |
+| `zabbix_agentd.d/zabbix_java_gw_adapter_lo.conf` | 1.0.0 |
+| `template/template_generic_java_z_j_gw_a_lo.yaml` | 1.0.0 (Zabbix export format 7.4) |
+| `install.sh` | 1.0.0 (`--version`) |
+| `examples/well-known-java.example.sh` | 1.0.0 (`--version`) |
+| `examples/discovery.game-servers.example.sh` | 1.0.0 (`--version`) |
+| `docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md` | 1.0.0 |
+| `docs/zabbix_java_gw_adapter-examples.md` | 1.0.0 |
+| `cron/zabbix-jmx-discovery.cron` | 1.0.0 |
+| `timers/zabbix-jmx-discovery.*.example` | 1.0.0 |
+| `docs/TODO.md` | 1.0.0 |
+
 > **Not a framework yet** — a documented **pattern**, reference adapter, Zabbix template, and example discovery scripts you copy and adapt per product. Read **§0** in the [base doc](<docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md>) before deploying.
 
 ## Why this exists
@@ -56,23 +74,26 @@ Full checklist: [base doc §8](<docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md>).
 |----------|---------|
 | **[docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md](<docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md>)** | **Base reference** — architecture, discovery, templates, escaping, deployment, auth |
 | [docs/zabbix_java_gw_adapter-examples.md](docs/zabbix_java_gw_adapter-examples.md) | Escaping layers and `zabbix_get` cookbook (§6 detail) |
+| [docs/TODO.md](docs/TODO.md) | Maintainer backlog and recommendations |
 
 ## Repository layout
 
 | Path | Role |
 |------|------|
 | **Core** | |
-| `bin/zabbix_java_gw_adapter` | Gateway binary-protocol client (**required**) |
-| `zabbix_agentd.d/zabbix_java_gw_adapter_lo.conf` | Agent UserParameter `z_java_gw_adapter_lo` |
-| `template/template_generic_java_z_j_gw_a_lo.yaml` | Generic JVM template (Zabbix 7.4 export) |
-| `install.sh` | Install adapter, agent drop-in, well-known example, docs under `/usr/local` |
+| `bin/zabbix_java_gw_adapter` | Gateway client v1.0.0 (**required**) |
+| `zabbix_agentd.d/zabbix_java_gw_adapter_lo.conf` | Agent UserParameter v1.0.0 |
+| `template/template_generic_java_z_j_gw_a_lo.yaml` | Generic JVM template v1.0.0 (Zabbix 7.4 export) |
+| `install.sh` | Install script v1.0.0 |
 | **Discovery examples** | |
-| `examples/well-known-java.example.sh` | Cassandra, Kafka, Tomcat, ActiveMQ, … — default JMX ports |
-| `examples/discovery.game-servers.example.sh` | Multi-instance `enabled/*.properties` pattern (base doc §4.4) |
+| `examples/well-known-java.example.sh` | Well-known Java discovery v1.0.0 |
+| `examples/discovery.game-servers.example.sh` | Multi-instance game-server example v1.0.0 (base doc §4.4) |
 | **Schedule examples** | |
-| `cron/zabbix_jmx_discovery.cron` | `/etc/cron.d/` example — one entry per product script |
-| `timers/zabbix-jmx-discovery.service.example` | systemd oneshot |
-| `timers/zabbix-jmx-discovery.timer.example` | systemd timer (e.g. every 5 min) |
+| `cron/zabbix-jmx-discovery.cron` | Cron example v1.0.0 |
+| `timers/zabbix-jmx-discovery.service.example` | systemd oneshot v1.0.0 |
+| `timers/zabbix-jmx-discovery.timer.example` | systemd timer v1.0.0 |
+| **Maintainer** | |
+| `docs/TODO.md` | Backlog and recommendations v1.0.0 |
 
 Example scripts implement `--dry-run` and `--emit`; production copies add **`zabbix_sender`** for instance TRAP LLD. See [base doc §4](<docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md>).
 

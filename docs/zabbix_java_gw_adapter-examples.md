@@ -1,5 +1,7 @@
 # zabbix_java_gw_adapter — escaping examples
 
+**Document version:** 1.0.0
+
 **Author:** Alexander Rydzewski — [zabbix-secure-automatic-jmx](https://github.com/AlexRydzewski/zabbix-secure-automatic-jmx)
 
 Companion to **[SECURE AUTOMATIC JMX  WITH ZABBIX.md](<SECURE AUTOMATIC JMX  WITH ZABBIX.md>) §6** — layer-by-layer `zabbix_get`, template keys, and failure cases for `z_java_gw_adapter_lo`.

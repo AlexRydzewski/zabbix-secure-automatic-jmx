@@ -1,4 +1,5 @@
 # systemd oneshot — run YOUR discovery script on timer tick.
+# Version: 1.0.0
 # Install (adjust paths):
 #   install -m 644 timers/zabbix-jmx-discovery.service.example /etc/systemd/system/zabbix-jmx-discovery.service
 #   install -m 644 timers/zabbix-jmx-discovery.timer.example /etc/systemd/system/zabbix-jmx-discovery.timer
@@ -15,10 +16,9 @@ Documentation=file:///usr/local/share/doc/zabbix-jmx-discovery/docs/SECURE%20AUT
 Type=oneshot
 User=root
 Environment=PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-# Product script with zabbix_sender wired in:
+# Replace with your discovery script (must call zabbix_sender):
 # ExecStart=/usr/local/lib/zabbix-jmx-discovery/my-product-discovery.sh
-# Or optional aggregator sketch:
-ExecStart=/usr/local/bin/zabbix_jmx_discovery
+ExecStart=/bin/true
 
 [Install]
 WantedBy=multi-user.target

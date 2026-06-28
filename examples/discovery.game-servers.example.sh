@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # custom bundle — multi-instance game servers from enabled/*.properties
+# Version: 1.0.0
 # zabbix-secure-automatic-jmx — Alexander Rydzewski <rydzewski.al@gmail.com>
 #
 # Scenario walkthrough: docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md §4.4
 #
 # Standalone discovery script — copy to the host, wire zabbix_sender for TRAP LLD.
-# Optional later: __jmx_discovery_load_emit when using zabbix_jmx_discovery aggregator.
 #
 #   discovery.game-servers.sh --dry-run
 #   discovery.game-servers.sh --emit
@@ -23,6 +23,8 @@
 #   wsPath=/game                             (optional URN path)
 
 set -euo pipefail
+
+readonly SCRIPT_VERSION='1.0.0'
 
 CONFIG_DIR="${CONFIG_DIR:-/etc/game/enabled}"
 HOST_NAME="${HOST_NAME:-$(hostname)}"
@@ -219,7 +221,7 @@ PID: pidfile, then pgrep -f -Dsettings=<config>.
 JMX port: jmx.port, then cmdline, then single listener in pool.
 
   --dry-run, --show   Human-readable preview
-  --emit              INSTANCE/TRAP lines for zabbix_jmx_discovery
+  --emit              INSTANCE/TRAP lines (tab-separated)
 
 Environment:
   CONFIG_DIR              default: /etc/game/enabled
@@ -231,6 +233,7 @@ EOF
 
 __main() {
     case "${1:-}" in
+        -V|--version) printf 'discovery.game-servers.sh %s\n' "$SCRIPT_VERSION"; exit 0 ;;
         -h|--help) __usage; exit 0 ;;
         --dry-run|--show) __print_dry_run ;;
         --emit) __discover_game_servers ;;

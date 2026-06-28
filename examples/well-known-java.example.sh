@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # well_known_java bundle — Java apps with well-known default JMX ports.
+# Version: 1.0.0
 # zabbix-secure-automatic-jmx — Alexander Rydzewski <rydzewski.al@gmail.com>
 #
-# Standalone discovery script — never sourced by zabbix_jmx_discovery.
-# Engine runs:  well-known-java.sh --emit
+# Standalone discovery script — run directly on the host.
 # Dry-run:      well-known-java.sh --dry-run
 #               well-known-java.sh --show   (alias)
 #
@@ -15,6 +15,8 @@
 #   TRAP_KEY | APP_ID | DEFAULT_JMX_PORT | DISPLAY_NAME | CMDLINE_PATTERN
 
 set -euo pipefail
+
+readonly SCRIPT_VERSION='1.0.0'
 
 SERVER_ID="${SERVER_ID:-$(hostname -s 2>/dev/null || hostname)}"
 HOST_NAME="${HOST_NAME:-$(hostname)}"
@@ -171,11 +173,11 @@ Java applications with default JMX ports (Cassandra, Kafka, Tomcat, …).
 TRAP keys: zabbix.jmx.jvm.discovery + zabbix.jmx.<app>.discovery
 
   --dry-run, --show   Human-readable preview (run this to debug discovery)
-  --emit              Machine output for zabbix_jmx_discovery (INSTANCE/TRAP lines)
+  --emit              Machine output: INSTANCE/TRAP lines (tab-separated)
 
 Examples:
   $(basename "$0") --dry-run
-  zabbix_jmx_discovery --dry --show
+  $(basename "$0") --emit
 
 Installed path:
   /usr/local/lib/zabbix-jmx-discovery/well-known-java.sh
@@ -184,6 +186,7 @@ EOF
 
 __main() {
     case "${1:-}" in
+        -V|--version) printf 'well-known-java.sh %s\n' "$SCRIPT_VERSION"; exit 0 ;;
         -h|--help) __usage; exit 0 ;;
         --dry-run|--show) __print_discovery_dry_run ;;
         --emit) __discover_java_on_default_ports ;;
