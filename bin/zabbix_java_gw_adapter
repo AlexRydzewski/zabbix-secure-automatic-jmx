@@ -3,19 +3,76 @@
 # Talk to local zabbix-java-gateway (port 10052) using the native Zabbix binary protocol.
 # Used from zabbix-agent UserParameter (z_java_gw_adapter_lo) for active JMX checks when
 # JMX is bound to localhost only (jmxremote.local.only=true).
+# Source: zabbix_get_java.sh from
+#   https://blog.zabbix.com/new-monitoring-possibilities-for-java-applications-in-zabbix-3-4/5972/
+#   (Vadim Ipatov, Zabbix Blog, 2017-11-16)
 #
-# Reference: https://blog.zabbix.com/new-monitoring-possibilities-for-java-applications-in-zabbix-3-4/5972/
+# Modified by: Alexander Rydzewski <rydzewski.al@gmail.com>
+#   https://github.com/AlexRydzewski/zabbix-secure-automatic-jmx (Z_J_gw_A_lo pattern)
+# Modifications:
+#   - Hardcode gateway to localhost:10052 (gateway co-located with agent on app host).
+#   - Args: <host> <jmx_port> <jmx_key> [username] [password] instead of six parameters
+#     (<gateway_host> <gateway_port> <jmx_server> <jmx_port> <jmx_endpoint> <key>).
+#   - Build jmx_endpoint from host+port; omit legacy JSON "conn" and "port" fields.
+#   - Optional JMX username/password appended to the request body when args 4/5 are set.
+#   - Trailing newline on output for UserParameter compatibility.
+#   - Overall timeout via ZABBIX_JAVA_GW_ADAPTER_TIMEOUT (default 30s); re-exec under timeout(1).
+#   - __esc_json: JSON-escape jmx key (and auth fields) once in the gateway message body.
+#     Adapter receives the logical jmx key from the agent; templates need fewer backslashes
+#     than when the adapter did not escape (typically \\ before inner " in item keys, not \\\\).
+#
 # See also: https://www.zabbix.com/documentation/current/en/manual/concepts/java
 #
 # Usage: zabbix_java_gw_adapter <host> <jmx_port> <jmx_key> [username] [password]
 
-exec 3<>/dev/tcp/localhost/10052
-MSG='{"request":"java gateway jmx"'"${4/#/,username:}${5/#/,password:}"',"jmx_endpoint":"service:jmx:rmi:///jndi/rmi://'"${1}":${2}/'jmxrmi","keys":["'"${3}"'"]}'
+TIMEOUT="${ZABBIX_JAVA_GW_ADAPTER_TIMEOUT:-30}"
+
+if [ "${1:-}" != --internal ]; then
+    if command -v timeout >/dev/null 2>&1; then
+        exec timeout "$TIMEOUT" "$0" --internal "$@"
+    fi
+fi
+[ "${1:-}" = --internal ] && shift
+
+exec 3<>/dev/tcp/localhost/10052 || {
+    printf '{"response":"failed","error":"gateway unreachable"}\n'
+    exit 1
+}
+
+__esc_json() {
+    local s=$1 out="" i c
+    for ((i = 0; i < ${#s}; i++)); do
+        c=${s:i:1}
+        case "$c" in
+            \\) out+='\\\\' ;;
+            \") out+='\"' ;;
+            *)  out+="$c" ;;
+        esac
+    done
+    printf '%s' "$out"
+}
+
+[ -z "${3:-}" ] && {
+    printf '{"response":"failed","error":"usage: %s <host> <jmx_port> <jmx_key> [username] [password]"}\n' "$0"
+    exit 1
+}
+
+AUTH=""
+[ -n "${4:-}" ] && AUTH+=",\"username\":\"$(__esc_json "$4")\""
+[ -n "${5:-}" ] && AUTH+=",\"password\":\"$(__esc_json "$5")\""
+
+MSG='{"request":"java gateway jmx"'"${AUTH}"',"jmx_endpoint":"service:jmx:rmi:///jndi/rmi://'"${1}":${2}/'jmxrmi","keys":["'"$(__esc_json "$3")"'"]}'
+
+# write message length as zero-padded 16-digit hexadecimal number
 printf -v LEN '%016x' "${#MSG}"
 
+# prepare message length in little endian representation
 BYTES=""
 for i in {0..14..2}; do BYTES="\\x${LEN:$i:2}$BYTES"; done
 
+# prepend protocol header and message length
 printf "ZBXD\\1$BYTES%s" "$MSG" >&3
+
+# output the result skipping 6 bytes of "ZBXD\\1" header and 8 bytes of message length
 tail -c+14 <&3
 echo ""

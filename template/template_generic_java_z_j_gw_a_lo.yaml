@@ -8,231 +8,31 @@ zabbix_export:
       template: 'Template App Generic Java Z_J_gw_A_lo'
       name: 'Template App Generic Java Z_J_gw_A_lo'
       description: |
-        Generic JVM metrics through local zabbix-java-gateway and zabbix_java_gw_adapter (Z_J_gw_A_lo).
-        Based on Zabbix Generic Java JMX template; GC and MemoryPool use runtime jmx.discovery.
+        Generic JVM metrics via z_java_gw_adapter_lo active items (Z_J_gw_A_lo pattern).
+
+        Escaping: zabbix_java_gw_adapter __esc_json JSON-escapes the logical jmx key in the
+        gateway message body. That reduces escaped backslashes in item keys from four to two
+        (use \\ before each inner " around bean/pattern, not \\\\") — cleaner, easier to organize.
+        Agent-layer quoting is still mandatory; see docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md §6.
+
+        Author: Alexander Rydzewski <rydzewski.al@gmail.com>
+        https://github.com/AlexRydzewski/zabbix-secure-automatic-jmx
 
         https://blog.zabbix.com/new-monitoring-possibilities-for-java-applications-in-zabbix-3-4/5972/
         https://www.zabbix.com/documentation/current/en/manual/concepts/java
-        Discovery: zabbix_jvm_discovery + INSTANCE_COLLECTOR
+        Discovery: zabbix_jmx_discovery (well_known_java + custom + any_java bundles)
       groups:
         - name: Templates/Applications/Java
       discovery_rules:
-        - uuid: fb681785f8c44d979d9e04b6579530ef
-          name: 'JVM GC discovery'
-          type: TRAP
-          key: zabbix.jmx_jvm_gc.discovery
-          lifetime: 30d
-          enabled_lifetime_type: DISABLE_NEVER
-          description: |
-            https://www.freecodecamp.org/news/garbage-collection-in-java-what-is-gc-and-how-it-works-in-the-jvm/
-            https://www.javatpoint.com/types-of-garbage-collector-in-java
-            
-                Discovery data obtained with zabbix_jvm_discovery bash scenario.
-          item_prototypes:
-            - uuid: c2a56d2cbefe478a852f6b519576b631
-              name: '{#SERVERID},{#APPNAME}: gc {#JMXNAME} collections count'
-              type: ZABBIX_ACTIVE
-              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXGCOBJ}\\\\",CollectionCount]"]'
-              history: 1w
-              value_type: FLOAT
-              trends: 4w
-              preprocessing:
-                - type: JSONPATH
-                  parameters:
-                    - '$.data[0].value'
-              tags:
-                - tag: Application
-                  value: 'Java:Application'
-                - tag: Application
-                  value: '{#APPNAME}'
-                - tag: Application
-                  value: '{#SERVERID},{#APPNAME}'
-            - uuid: ed40fb1c066a445bb8aed58442b263aa
-              name: '{#SERVERID},{#APPNAME}: gc {#JMXNAME} collections time'
-              type: ZABBIX_ACTIVE
-              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXGCOBJ}\\\\",CollectionTime]"]'
-              history: 1w
-              value_type: FLOAT
-              trends: 4w
-              units: s
-              preprocessing:
-                - type: JSONPATH
-                  parameters:
-                    - '$.data[0].value'
-                - type: MULTIPLIER
-                  parameters:
-                    - '0.001'
-              tags:
-                - tag: Application
-                  value: JVM
-                - tag: Application
-                  value: 'JVM:GarbageCollector'
-                - tag: Application
-                  value: 'Java:Application'
-                - tag: Application
-                  value: '{#APPNAME}'
-                - tag: Application
-                  value: '{#SERVERID},{#APPNAME}'
-            - uuid: 2e46ef5d200e471ea54f1e151d5164ee
-              name: '{#SERVERID},{#APPNAME}: gc {#JMXNAME} Name'
-              type: ZABBIX_ACTIVE
-              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXGCOBJ}\\\\",Name]"]'
-              history: 1h
-              value_type: CHAR
-              preprocessing:
-                - type: JSONPATH
-                  parameters:
-                    - '$.data[0].value'
-              tags:
-                - tag: Application
-                  value: JVM
-                - tag: Application
-                  value: 'JVM:GarbageCollector'
-                - tag: Application
-                  value: 'Java:Application'
-                - tag: Application
-                  value: '{#APPNAME}'
-                - tag: Application
-                  value: '{#SERVERID},{#APPNAME}'
-        - uuid: e95d47b7f1864fc0a23acdd3890fbcc6
-          name: 'JVM MemoryPool discovery'
-          type: TRAP
-          key: zabbix.jmx_jvm_mp.discovery
-          lifetime: 30d
-          enabled_lifetime_type: DISABLE_NEVER
-          description: |
-            https://www.freecodecamp.org/news/garbage-collection-in-java-what-is-gc-and-how-it-works-in-the-jvm/
-            https://www.javatpoint.com/types-of-garbage-collector-in-java
-            
-                 Discovery data obtained with zabbix_jvm_discovery bash scenario.
-          item_prototypes:
-            - uuid: 3141146ef67241dba9fb2ee0fb4c18cf
-              name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} Name'
-              type: ZABBIX_ACTIVE
-              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Name]"]'
-              history: 1h
-              value_type: CHAR
-              preprocessing:
-                - type: JSONPATH
-                  parameters:
-                    - '$.data[0].value'
-              tags:
-                - tag: Application
-                  value: JVM
-                - tag: Application
-                  value: 'JVM:MemoryPool'
-                - tag: Application
-                  value: 'Java:Application'
-                - tag: Application
-                  value: '{#APPNAME}'
-                - tag: Application
-                  value: '{#SERVERID},{#APPNAME}'
-            - uuid: cae5e99f8013410facd12a3df5bb30b9
-              name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} committed'
-              type: ZABBIX_ACTIVE
-              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.committed]"]'
-              history: 1w
-              trends: 4w
-              units: B
-              preprocessing:
-                - type: JSONPATH
-                  parameters:
-                    - '$.data[0].value'
-              tags:
-                - tag: Application
-                  value: JVM
-                - tag: Application
-                  value: 'JVM:MemoryPool'
-                - tag: Application
-                  value: 'Java:Application'
-                - tag: Application
-                  value: '{#APPNAME}'
-                - tag: Application
-                  value: '{#SERVERID},{#APPNAME}'
-            - uuid: 13a2896386ca4db683a36493658d7ab3
-              name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} max'
-              type: ZABBIX_ACTIVE
-              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.max]"]'
-              history: 1w
-              value_type: FLOAT
-              trends: 4w
-              units: B
-              preprocessing:
-                - type: JSONPATH
-                  parameters:
-                    - '$.data[0].value'
-              tags:
-                - tag: Application
-                  value: JVM
-                - tag: Application
-                  value: 'JVM:MemoryPool'
-                - tag: Application
-                  value: 'Java:Application'
-                - tag: Application
-                  value: '{#APPNAME}'
-                - tag: Application
-                  value: '{#SERVERID},{#APPNAME}'
-            - uuid: 6500317096374136a1ee8906258df4aa
-              name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} used'
-              type: ZABBIX_ACTIVE
-              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.used]"]'
-              history: 1w
-              trends: 4w
-              units: B
-              preprocessing:
-                - type: JSONPATH
-                  parameters:
-                    - '$.data[0].value'
-              tags:
-                - tag: Application
-                  value: JVM
-                - tag: Application
-                  value: 'JVM:MemoryPool'
-                - tag: Application
-                  value: 'Java:Application'
-                - tag: Application
-                  value: '{#APPNAME}'
-                - tag: Application
-                  value: '{#SERVERID},{#APPNAME}'
-          trigger_prototypes:
-            - uuid: 96e1a20c306f4f5688a878d9fda1c0fc
-              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.used]"])>(last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.max]"])*0.95) and last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.max]"])>0 and not (find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Name]"],,"like","PS Eden Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Name]"],,"like","PS Survivor Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Name]"],,"like","G1 Eden Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Name]"],,"like","G1 Survivor Space")=1)'
-              name: '{#SERVERID},{#APPNAME}: 95% mp {#JMXNAME} used'
-              priority: AVERAGE
-              description: 'https://www.freecodecamp.org/news/garbage-collection-in-java-what-is-gc-and-how-it-works-in-the-jvm/'
-            - uuid: fc568d615b234148858563be44207af3
-              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.committed]"])=last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.max]"]) and not (find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Name]"],,"like","PS Eden Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Name]"],,"like","PS Survivor Space")=1 or  find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Name]"],,"like","PS Old Gen")=1)'
-              name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} fully committed'
-              priority: WARNING
-              description: 'https://www.freecodecamp.org/news/garbage-collection-in-java-what-is-gc-and-how-it-works-in-the-jvm/'
-          graph_prototypes:
-            - uuid: e49ff33cfe1540bfb5c6200a18dbf044
-              name: '{#SERVERID},{#APPNAME}: Memory Pool {#JMXNAME},Usage'
-              graph_items:
-                - color: 00FFFF
-                  item:
-                    host: 'Template App Generic Java Z_J_gw_A_lo'
-                    key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.max]"]'
-                - sortorder: '1'
-                  color: 00FFBF
-                  item:
-                    host: 'Template App Generic Java Z_J_gw_A_lo'
-                    key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.committed]"]'
-                - sortorder: '2'
-                  color: 2774A4
-                  item:
-                    host: 'Template App Generic Java Z_J_gw_A_lo'
-                    key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"{#JMXMPOBJ}\\\\",Usage.used]"]'
         - uuid: a759f5ea536b4272a6531ddbef01fa58
           name: 'JVM instance discovery'
           type: TRAP
-          key: zabbix.jvm.discovery
+          key: zabbix.jmx.jvm.discovery
           lifetime: 30d
           enabled_lifetime_type: DISABLE_NEVER
           description: |
-            Collecting trivial JVM metrics.
-            
-                Discovery data obtained with zabbix_jvm_discovery bash scenario.
+            JVM instances from zabbix_jmx_discovery TRAP (zabbix.jmx.jvm.discovery).
+            Item prototypes: z_java_gw_adapter_lo — __esc_json in adapter; \\ before inner " in keys (§6).
           item_prototypes:
             - uuid: 738dbd156cf54fdca950f61926c6c264
               name: '{#SERVERID},{#APPNAME}: cl Loaded Class Count'
@@ -764,12 +564,6 @@ zabbix_export:
               priority: INFO
               description: 'The trigger will be deactivated automatically after 24 hours'
               manual_close: 'YES'
-            - uuid: 451eaacd2905455e8fad137863938cb2
-              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"java.lang:type=GarbageCollector,name=ParNew\\\\",CollectionCount]"])<last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\\\"java.lang:type=GarbageCollector,name=ConcurrentMarkSweep\\\\",CollectionCount]"])'
-              name: '{#SERVERID},{#APPNAME}: gc CMS in fire fighting mode'
-              priority: WARNING
-              description: 'CMS-only. https://blog.svedr.in/posts/problem-gc-concurrent-mark-sweep-in-fire-fighting-mode/'
-              manual_close: 'YES'
           graph_prototypes:
             - uuid: 1377e986001d49168b0264af217a9b37
               name: '{#SERVERID},{#APPNAME}: Memory,HeapMemoryUsage'
@@ -788,3 +582,239 @@ zabbix_export:
                   item:
                     host: 'Template App Generic Java Z_J_gw_A_lo'
                     key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.used]"]'
+        - uuid: fb681785f8c44d979d9e04b6579530ef
+          name: 'JVM GC discovery'
+          type: ZABBIX_ACTIVE
+          key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx.discovery[beans,\\"*:type=GarbageCollector,name=*\\"]"]'
+          delay: 1h
+          lifetime: 30d
+          enabled_lifetime_type: DISABLE_NEVER
+          parent_discovery_rule:
+            key: zabbix.jmx.jvm.discovery
+          description: |
+            Garbage collectors via jmx.discovery through z_java_gw_adapter_lo.
+            Item keys: \\ before inner " (adapter __esc_json — four backslashes not needed).
+            https://www.zabbix.com/documentation/3.4/en/manual/discovery/low_level_discovery/jmx
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var o = JSON.parse(value);
+                  var inner = o.data && o.data[0] && o.data[0].value;
+                  if (!inner) return value;
+                  if (typeof inner === 'string') {
+                    inner = inner.replace(/\\\//g, '/');
+                    inner = JSON.parse(inner);
+                  }
+                  return JSON.stringify(inner);
+
+          item_prototypes:
+            - uuid: c2a56d2cbefe478a852f6b519576b631
+              name: '{#SERVERID},{#APPNAME}: gc {#JMXNAME} collections count'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",CollectionCount]"]'
+              history: 1w
+              value_type: FLOAT
+              trends: 4w
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: 'Java:Application'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: ed40fb1c066a445bb8aed58442b263aa
+              name: '{#SERVERID},{#APPNAME}: gc {#JMXNAME} collections time'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",CollectionTime]"]'
+              history: 1w
+              value_type: FLOAT
+              trends: 4w
+              units: s
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+                - type: MULTIPLIER
+                  parameters:
+                    - '0.001'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:GarbageCollector'
+                - tag: Application
+                  value: 'Java:Application'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: 2e46ef5d200e471ea54f1e151d5164ee
+              name: '{#SERVERID},{#APPNAME}: gc {#JMXNAME} Name'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Name]"]'
+              history: 1h
+              value_type: CHAR
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:GarbageCollector'
+                - tag: Application
+                  value: 'Java:Application'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+        - uuid: e95d47b7f1864fc0a23acdd3890fbcc6
+          name: 'JVM MemoryPool discovery'
+          type: ZABBIX_ACTIVE
+          key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx.discovery[beans,\\"*:type=MemoryPool,name=*\\"]"]'
+          delay: 1h
+          lifetime: 30d
+          enabled_lifetime_type: DISABLE_NEVER
+          parent_discovery_rule:
+            key: zabbix.jmx.jvm.discovery
+          description: |
+            Memory pools via jmx.discovery through z_java_gw_adapter_lo.
+            Item keys: \\ before inner " (adapter __esc_json — four backslashes not needed).
+            https://www.zabbix.com/documentation/3.4/en/manual/discovery/low_level_discovery/jmx
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var o = JSON.parse(value);
+                  var inner = o.data && o.data[0] && o.data[0].value;
+                  if (!inner) return value;
+                  if (typeof inner === 'string') {
+                    inner = inner.replace(/\\\//g, '/');
+                    inner = JSON.parse(inner);
+                  }
+                  return JSON.stringify(inner);
+
+          item_prototypes:
+            - uuid: 3141146ef67241dba9fb2ee0fb4c18cf
+              name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} Name'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Name]"]'
+              history: 1h
+              value_type: CHAR
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:MemoryPool'
+                - tag: Application
+                  value: 'Java:Application'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: cae5e99f8013410facd12a3df5bb30b9
+              name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} committed'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.committed]"]'
+              history: 1w
+              trends: 4w
+              units: B
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:MemoryPool'
+                - tag: Application
+                  value: 'Java:Application'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: 13a2896386ca4db683a36493658d7ab3
+              name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} max'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.max]"]'
+              history: 1w
+              value_type: FLOAT
+              trends: 4w
+              units: B
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:MemoryPool'
+                - tag: Application
+                  value: 'Java:Application'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: 6500317096374136a1ee8906258df4aa
+              name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} used'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.used]"]'
+              history: 1w
+              trends: 4w
+              units: B
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:MemoryPool'
+                - tag: Application
+                  value: 'Java:Application'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+          trigger_prototypes:
+            - uuid: 96e1a20c306f4f5688a878d9fda1c0fc
+              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.used]"])>(last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.max]"])*0.95) and last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.max]"])>0 and not (find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Name]"],,"like","PS Eden Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Name]"],,"like","PS Survivor Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Name]"],,"like","G1 Eden Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Name]"],,"like","G1 Survivor Space")=1)'
+              name: '{#SERVERID},{#APPNAME}: 95% mp {#JMXNAME} used'
+              priority: AVERAGE
+              description: 'https://www.freecodecamp.org/news/garbage-collection-in-java-what-is-gc-and-how-it-works-in-the-jvm/'
+            - uuid: fc568d615b234148858563be44207af3
+              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.committed]"])=last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.max]"]) and not (find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Name]"],,"like","PS Eden Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Name]"],,"like","PS Survivor Space")=1 or  find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Name]"],,"like","PS Old Gen")=1)'
+              name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} fully committed'
+              priority: WARNING
+              description: 'https://www.freecodecamp.org/news/garbage-collection-in-java-what-is-gc-and-how-it-works-in-the-jvm/'
+          graph_prototypes:
+            - uuid: e49ff33cfe1540bfb5c6200a18dbf044
+              name: '{#SERVERID},{#APPNAME}: Memory Pool {#JMXNAME},Usage'
+              graph_items:
+                - color: 00FFFF
+                  item:
+                    host: 'Template App Generic Java Z_J_gw_A_lo'
+                    key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.max]"]'
+                - sortorder: '1'
+                  color: 00FFBF
+                  item:
+                    host: 'Template App Generic Java Z_J_gw_A_lo'
+                    key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.committed]"]'
+                - sortorder: '2'
+                  color: 2774A4
+                  item:
+                    host: 'Template App Generic Java Z_J_gw_A_lo'
+                    key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.used]"]'

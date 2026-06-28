@@ -1,0 +1,15 @@
+# systemd timer — discovery schedule (example: every 5 minutes).
+# Pair with zabbix-jmx-discovery.service.example
+# zabbix-secure-automatic-jmx — Alexander Rydzewski <rydzewski.al@gmail.com>
+
+[Unit]
+Description=Schedule JMX TRAP discovery
+Documentation=file:///usr/local/share/doc/zabbix-jmx-discovery/docs/SECURE%20AUTOMATIC%20JMX%20%20WITH%20ZABBIX.md
+
+[Timer]
+OnCalendar=*:0/5
+Persistent=true
+Unit=zabbix-jmx-discovery.service
+
+[Install]
+WantedBy=timers.target

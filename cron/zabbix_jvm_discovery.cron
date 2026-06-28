@@ -1,7 +1,0 @@
-# Requires INSTANCE_COLLECTOR in /etc/default/zabbix_jvm_discovery
-# Install: see java-generic/install.sh
-
-SHELL=/bin/sh
-PATH=/sbin:/bin:/usr/sbin:/usr/bin
-
-* * * * *	root	/usr/local/bin/zabbix_jvm_discovery --discovery &> /dev/null

@@ -1,0 +1,24 @@
+# systemd oneshot — run YOUR discovery script on timer tick.
+# Install (adjust paths):
+#   install -m 644 timers/zabbix-jmx-discovery.service.example /etc/systemd/system/zabbix-jmx-discovery.service
+#   install -m 644 timers/zabbix-jmx-discovery.timer.example /etc/systemd/system/zabbix-jmx-discovery.timer
+#   systemctl daemon-reload && systemctl enable --now zabbix-jmx-discovery.timer
+#
+# Replace ExecStart with your script (must call zabbix_sender — examples stop at --emit).
+# zabbix-secure-automatic-jmx — Alexander Rydzewski <rydzewski.al@gmail.com>
+
+[Unit]
+Description=JMX instance TRAP discovery (example)
+Documentation=file:///usr/local/share/doc/zabbix-jmx-discovery/docs/SECURE%20AUTOMATIC%20JMX%20%20WITH%20ZABBIX.md
+
+[Service]
+Type=oneshot
+User=root
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+# Product script with zabbix_sender wired in:
+# ExecStart=/usr/local/lib/zabbix-jmx-discovery/my-product-discovery.sh
+# Or optional aggregator sketch:
+ExecStart=/usr/local/bin/zabbix_jmx_discovery
+
+[Install]
+WantedBy=multi-user.target
