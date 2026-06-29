@@ -15,7 +15,7 @@ Each tracked component has its **own version** (currently **1.0.0** where noted 
 | Component | Version |
 |-----------|---------|
 | `bin/zabbix_java_gw_adapter` | 1.0.0 (`--version`) |
-| `bin/well-known-Z_J_gw_A_lo-discovery` | 1.0.7 (`--version`) |
+| `bin/well-known-Z_J_gw_A_lo-discovery` | 1.0.8 (`--version`) |
 | `zabbix_agentd.d/zabbix_java_gw_adapter_lo.conf` | 1.0.0 |
 | `template/template_generic_java_z_j_gw_a_lo.yaml` | 1.0.0 (Zabbix export format 7.4) |
 | `install.sh` | 1.0.0 (`--version`) |
@@ -84,7 +84,7 @@ Full checklist: [base doc §8](<docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md>).
 |------|------|
 | **Core** | |
 | `bin/zabbix_java_gw_adapter` | Gateway client v1.0.0 (**required**) |
-| `bin/well-known-Z_J_gw_A_lo-discovery` | Zabbix discovery for well-known Java v1.0.7 (installed to `/usr/local/bin/`) |
+| `bin/well-known-Z_J_gw_A_lo-discovery` | Zabbix discovery for well-known Java v1.0.8 (installed to `/usr/local/bin/`) |
 | `zabbix_agentd.d/zabbix_java_gw_adapter_lo.conf` | Agent UserParameter v1.0.0 |
 | `template/template_generic_java_z_j_gw_a_lo.yaml` | Generic JVM template v1.0.0 (Zabbix 7.4 export) |
 | `install.sh` | Install script v1.0.0 |
