@@ -227,7 +227,7 @@ Plugins run in order. Each plugin skips PIDs / APPIDs already discovered.
 
 | Script | Location | Type | Notes |
 | ------ | -------- | ---- | ----- |
-| `well-known-Z_J_gw_A_lo-discovery` | `bin/` (installed to `/usr/local/bin/`) | **well_known_java** | `--report` catalog scan (never sends); `--show` TRAP JSON; `--dry-run` skips send; default sends. |
+| `well-known-Z_J_gw_A_lo-discovery` | `bin/` (installed to `/usr/local/bin/`) | **well_known_java** | `--report` catalog scan only; `--show` TRAP JSON; `--dry-run` skips send; default sends. |
 | `discovery.game-servers.example.sh` | `examples/` | **custom** (multi-instance) | Copy and adapt — full walkthrough in §4.4. |
 
 Copy `examples/` scripts for custom products; use `bin/well-known-Z_J_gw_A_lo-discovery` as-is when the catalog matches your stack (§4.5).
@@ -555,7 +555,7 @@ All items in `template_generic_java_z_j_gw_a_lo.yaml` use `z_java_gw_adapter_lo[
 | Path                                              | Track | Version | Role                                               |
 | ------------------------------------------------- | ----- | ------- | -------------------------------------------------- |
 | `bin/zabbix_java_gw_adapter`                      | yes   | 1.0.0   | Gateway protocol client (**required**)             |
-| `bin/well-known-Z_J_gw_A_lo-discovery`              | yes   | 1.0.8   | Zabbix discovery for well-known Java apps          |
+| `bin/well-known-Z_J_gw_A_lo-discovery`              | yes   | 1.0.9   | Zabbix discovery for well-known Java apps          |
 | `zabbix_agentd.d/zabbix_java_gw_adapter_lo.conf`  | yes   | 1.0.0   | UserParameter `z_java_gw_adapter_lo`               |
 | `template/template_generic_java_z_j_gw_a_lo.yaml` | yes   | 1.0.0   | Generic JVM Zabbix template                        |
 | `install.sh`                                      | yes   | 1.0.0   | Install adapter, agent drop-in, well-known script  |
@@ -579,7 +579,7 @@ All items in `template_generic_java_z_j_gw_a_lo.yaml` use `z_java_gw_adapter_lo[
 1. Install `zabbix-java-gateway` on the app host (`localhost:10052`).
 2. `sudo ./install.sh` (adapter, `well-known-Z_J_gw_A_lo-discovery`, template import path).
 3. Wire **custom discovery** — copy/adapt `examples/discovery.game-servers.example.sh` to `/usr/local/lib/zabbix-jmx-discovery/`; cron per script.
-4. `well-known-Z_J_gw_A_lo-discovery --report` or `--dry-run --show` — verify instance rows and TRAP JSON before enabling send.
+4. `well-known-Z_J_gw_A_lo-discovery --report` (catalog) and `--dry-run --show` (TRAP JSON) — verify before enabling send.
 5. Enable schedule: `cron/zabbix-jmx-discovery.cron` or `timers/*.example` (one entry per product script).
 6. Restart `zabbix-agent` and `zabbix-java-gateway`.
 7. Import the JVM template; link it to the host.

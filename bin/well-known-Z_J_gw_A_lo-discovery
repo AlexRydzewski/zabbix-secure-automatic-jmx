@@ -2,14 +2,14 @@
 # well-known-Z_J_gw_A_lo-discovery — TRAP LLD for well-known Java apps (Cassandra, Kafka, Tomcat, …).
 # Naming: <catalog>-<pattern>-discovery  (pattern Z_J_gw_A_lo = Zabbix + Java gw + Active agent + localhost JMX).
 # Ready-made script (not an example — see examples/ for copy-and-adapt patterns).
-# Version: 1.0.8
+# Version: 1.0.9
 # zabbix-secure-automatic-jmx — Alexander Rydzewski <rydzewski.al@gmail.com>
 #
 # Standalone discovery script — run directly on the host.
 #   (no flags)          Discover and send TRAP LLD via zabbix_sender
 #   --dry-run           Do not send (combine with --show or --report for output)
 #   --show              Print TRAP JSON that would be sent (key: json per line)
-#   --report            Human-readable catalog scan ([ ] / [?] / [+]); never sends
+#   --report            Human-readable catalog scan ([ ] / [?] / [+]); no TRAP JSON; never sends
 #   --emit              Machine INSTANCE/TRAP lines (tab-separated; no send)
 #
 # Each match registers:
@@ -21,7 +21,7 @@
 
 set -euo pipefail
 
-readonly SCRIPT_VERSION='1.0.8'
+readonly SCRIPT_VERSION='1.0.9'
 readonly TRAP_KEY_JVM='zabbix.jmx.jvm.discovery'
 
 SERVER_ID="${SERVER_ID:-$(hostname -s 2>/dev/null || hostname)}"
@@ -187,7 +187,7 @@ __discover_java_on_default_ports() {
 }
 
 __print_discovery_report() {
-    local entry pid cmdline app_dir server_id jvm_json app_json found=0
+    local entry pid cmdline app_dir found=0
 
     for entry in "${DEFAULT_JMX_PORT_CATALOG[@]}"; do
         __parse_catalog_entry "$entry"
@@ -206,14 +206,7 @@ __print_discovery_report() {
 
         found=1
         app_dir="$(__process_working_directory "$pid")"
-        server_id="${SERVER_ID}:${CATALOG_APP_ID}"
-        jvm_json="$(__build_jvm_trap_json "$app_dir" "$server_id" "$CATALOG_APP_ID" "$HOST_NAME" "$pid" "$CATALOG_JMX_PORT")"
-        app_json="$(__build_app_trap_json "$app_dir" "$server_id" "$CATALOG_APP_ID" "$HOST_NAME" "$pid" "$CATALOG_JMX_PORT" "$CATALOG_DISPLAY_NAME")"
-
-        printf '[+] %s — port %s — pid %s\n' "$CATALOG_DISPLAY_NAME" "$CATALOG_JMX_PORT" "$pid"
-        printf '    %s: %s\n' "$TRAP_KEY_JVM" "$jvm_json"
-        printf '    %s: %s\n' "$CATALOG_TRAP_KEY" "$app_json"
-        printf '\n'
+        printf '[+] %s — port %s — pid %s — %s\n' "$CATALOG_DISPLAY_NAME" "$CATALOG_JMX_PORT" "$pid" "$app_dir"
     done
 
     [ "$found" -eq 0 ] && printf 'No matching well-known Java applications on this host.\n'
@@ -234,7 +227,7 @@ TRAP keys: zabbix.jmx.jvm.discovery + zabbix.jmx.<app>.discovery
   (no flags)          Send TRAP LLD via zabbix_sender (silent)
   --dry-run           Do not send to Zabbix
   --show              Print TRAP payload (key: json) for each match
-  --report            Human-readable catalog scan ([ ] / [?] / [+]); never sends
+  --report            Human-readable catalog scan ([ ] / [?] / [+]); no TRAP JSON; never sends
   --emit              INSTANCE/TRAP machine lines (tab-separated; no send)
 
 Send environment (when not --dry-run):
