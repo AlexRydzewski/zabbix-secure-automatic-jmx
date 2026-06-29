@@ -2,8 +2,10 @@
 # Version: 1.0.0
 # Install: install -m 644 cron/zabbix-jmx-discovery.cron /etc/cron.d/zabbix-jmx-discovery
 #
-# One entry per product script (script calls zabbix_sender).
-# Examples ship --dry-run / --emit only; wire send in your copy before enabling cron.
+# One entry per discovery script:
+#   /usr/local/bin/well-known-Z_J_gw_A_lo-discovery  — installed ready-made script
+#   /usr/local/lib/zabbix-jmx-discovery/…    — custom copies from examples/
+# Examples in examples/ ship --dry-run / --emit only; wire send in your copy before enabling cron.
 #
 # zabbix-secure-automatic-jmx — Alexander Rydzewski <rydzewski.al@gmail.com>
 # https://github.com/AlexRydzewski/zabbix-secure-automatic-jmx
@@ -11,4 +13,5 @@
 SHELL=/bin/sh
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
+# */5 * * * * root /usr/local/bin/well-known-Z_J_gw_A_lo-discovery >/dev/null 2>&1
 # */5 * * * * root /usr/local/lib/zabbix-jmx-discovery/my-product-discovery.sh >/dev/null 2>&1

@@ -1,0 +1,307 @@
+#!/usr/bin/env bash
+# well-known-Z_J_gw_A_lo-discovery — TRAP LLD for well-known Java apps (Cassandra, Kafka, Tomcat, …).
+# Naming: <catalog>-<pattern>-discovery  (pattern Z_J_gw_A_lo = Zabbix + Java gw + Active agent + localhost JMX).
+# Ready-made script (not an example — see examples/ for copy-and-adapt patterns).
+# Version: 1.0.7
+# zabbix-secure-automatic-jmx — Alexander Rydzewski <rydzewski.al@gmail.com>
+#
+# Standalone discovery script — run directly on the host.
+#   (no flags)          Discover and send TRAP LLD via zabbix_sender
+#   --dry-run           Do not send (combine with --show or --report for output)
+#   --show              Print TRAP JSON that would be sent (key: json per line)
+#   --report            Human-readable catalog scan ([ ] / [?] / [+])
+#   --emit              Machine INSTANCE/TRAP lines (tab-separated; no send)
+#
+# Each match registers:
+#   zabbix.jmx.jvm.discovery      → Template App Generic Java Z_J_gw_A_lo
+#   zabbix.jmx.<app>.discovery    → application template (assumed on host)
+#
+# Catalog field order (internal):
+#   TRAP_KEY | APP_ID | DEFAULT_JMX_PORT | DISPLAY_NAME | CMDLINE_PATTERN
+
+set -euo pipefail
+
+readonly SCRIPT_VERSION='1.0.7'
+readonly TRAP_KEY_JVM='zabbix.jmx.jvm.discovery'
+
+SERVER_ID="${SERVER_ID:-$(hostname -s 2>/dev/null || hostname)}"
+HOST_NAME="${HOST_NAME:-$(hostname)}"
+ZABBIX_SENDER="${ZABBIX_SENDER:-/usr/bin/zabbix_sender}"
+ZABBIX_SERVER="${ZABBIX_SERVER:-127.0.0.1}"
+ZABBIX_SENDER_PORT="${ZABBIX_SENDER_PORT:-10051}"
+ZABBIX_TRAP_HOST="${ZABBIX_TRAP_HOST:-$HOST_NAME}"
+
+# TRAP key | app id | JMX port | display name | extended-regex for cmdline (optional match)
+DEFAULT_JMX_PORT_CATALOG=(
+    'zabbix.jmx.cassandra.discovery|cassandra|7199|Apache Cassandra|cassandra|org\.apache\.cassandra'
+    'zabbix.jmx.kafka.discovery|kafka|9999|Apache Kafka|kafka\.Kafka|kafka-server'
+    'zabbix.jmx.tomcat.discovery|tomcat|8004|Apache Tomcat|catalina|tomcat|org\.apache\.catalina'
+    'zabbix.jmx.activemq.discovery|activemq|1099|Apache ActiveMQ|activemq|org\.apache\.activemq'
+    'zabbix.jmx.elasticsearch.discovery|elasticsearch|9010|Elasticsearch|elasticsearch'
+    'zabbix.jmx.hbase.discovery|hbase|10101|Apache HBase|hbase|org\.apache\.hadoop\.hbase'
+    'zabbix.jmx.solr.discovery|solr|18983|Apache Solr|solr|org\.apache\.solr'
+    'zabbix.jmx.jetty.discovery|jetty|1099|Eclipse Jetty|jetty|org\.eclipse\.jetty'
+)
+
+__json_escape_string() {
+    local s=$1 out="" i c
+    for ((i = 0; i < ${#s}; i++)); do
+        c=${s:i:1}
+        case "$c" in
+            \\) out+='\\\\' ;;
+            \") out+='\\"' ;;
+            *)  out+="$c" ;;
+        esac
+    done
+    printf '%s' "$out"
+}
+
+__java_pid_listening_on_port() {
+    local port="$1"
+    local pid=""
+
+    if command -v lsof >/dev/null 2>&1; then
+        pid="$(lsof -n -P -iTCP:"$port" -sTCP:LISTEN -t 2>/dev/null | head -1)"
+    fi
+    if [ -z "$pid" ] && command -v ss >/dev/null 2>&1; then
+        pid="$(ss -ltnp "sport = :$port" 2>/dev/null | sed -n 's/.*pid=\([0-9]\+\).*/\1/p' | head -1)"
+    fi
+    [ -n "$pid" ] || return 1
+
+    case "$(tr '\0' ' ' <"/proc/$pid/comm" 2>/dev/null)" in
+        java|javaw) printf '%s' "$pid" ;;
+        *) return 1 ;;
+    esac
+}
+
+__process_working_directory() {
+    local pid="$1"
+    readlink -f "/proc/$pid/cwd" 2>/dev/null || echo "/"
+}
+
+__process_cmdline_lowercase() {
+    local pid="$1"
+    tr '\0' ' ' <"/proc/$pid/cmdline" 2>/dev/null | tr '[:upper:]' '[:lower:]'
+}
+
+__cmdline_matches_pattern() {
+    local cmdline="$1"
+    local pattern="$2"
+    grep -qE "$pattern" <<< "$cmdline"
+}
+
+__parse_catalog_entry() {
+    local entry="$1" rest
+    IFS='|' read -r CATALOG_TRAP_KEY CATALOG_APP_ID CATALOG_JMX_PORT CATALOG_DISPLAY_NAME rest <<< "$entry"
+    CATALOG_CMDLINE_PATTERN="$rest"
+}
+
+__build_jvm_trap_json() {
+    local app_dir="$1" server_id="$2" app_id="$3" host="$4" pid="$5" jmx_port="$6"
+    printf '{"{#APPDIR}":"%s","{#SERVERID}":"%s","{#APPNAME}":"%s","{#HOST}":"%s","{#PID}":"%s","{#JMXPORT}":"%s"}' \
+        "$(__json_escape_string "$app_dir")" \
+        "$(__json_escape_string "$server_id")" \
+        "$(__json_escape_string "$app_id")" \
+        "$(__json_escape_string "$host")" \
+        "$pid" \
+        "$jmx_port"
+}
+
+__build_app_trap_json() {
+    local app_dir="$1" server_id="$2" app_id="$3" host="$4" pid="$5" jmx_port="$6" display_name="$7"
+    printf '{"{#APPDIR}":"%s","{#SERVERID}":"%s","{#APPNAME}":"%s","{#HOST}":"%s","{#PID}":"%s","{#JMXPORT}":"%s","{#APPID}":"%s","{#DISPLAYNAME}":"%s"}' \
+        "$(__json_escape_string "$app_dir")" \
+        "$(__json_escape_string "$server_id")" \
+        "$(__json_escape_string "$app_id")" \
+        "$(__json_escape_string "$host")" \
+        "$pid" \
+        "$jmx_port" \
+        "$(__json_escape_string "$app_id")" \
+        "$(__json_escape_string "$display_name")"
+}
+
+__emit_instance_line() {
+    local server_id="$1" app_name="$2" app_dir="$3" pid="$4" jmx_port="$5" host="$6"
+    printf 'INSTANCE\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+        "$server_id" "$app_name" "$app_dir" "$pid" "$jmx_port" "$host"
+}
+
+__emit_trap_line() {
+    local trap_key="$1" row_json="$2"
+    printf 'TRAP\t%s\t%s\n' "$trap_key" "$row_json"
+}
+
+__send_trap() {
+    local trap_key="$1" row_json="$2"
+    if ! command -v "$ZABBIX_SENDER" >/dev/null 2>&1; then
+        echo "zabbix_sender not found: $ZABBIX_SENDER" >&2
+        return 1
+    fi
+    "$ZABBIX_SENDER" -z "$ZABBIX_SERVER" -p "$ZABBIX_SENDER_PORT" \
+        -s "$ZABBIX_TRAP_HOST" -k "$trap_key" -o "[$row_json]"
+}
+
+# Callback args: server_id app_id app_dir pid jmx_port display_name jvm_json app_trap_key app_json
+__foreach_well_known_match() {
+    local callback="$1" entry pid cmdline app_dir server_id jvm_json app_json
+
+    for entry in "${DEFAULT_JMX_PORT_CATALOG[@]}"; do
+        __parse_catalog_entry "$entry"
+
+        pid="$(__java_pid_listening_on_port "$CATALOG_JMX_PORT")" || continue
+        cmdline="$(__process_cmdline_lowercase "$pid")"
+        __cmdline_matches_pattern "$cmdline" "$CATALOG_CMDLINE_PATTERN" || continue
+
+        app_dir="$(__process_working_directory "$pid")"
+        server_id="${SERVER_ID}:${CATALOG_APP_ID}"
+        jvm_json="$(__build_jvm_trap_json "$app_dir" "$server_id" "$CATALOG_APP_ID" "$HOST_NAME" "$pid" "$CATALOG_JMX_PORT")"
+        app_json="$(__build_app_trap_json "$app_dir" "$server_id" "$CATALOG_APP_ID" "$HOST_NAME" "$pid" "$CATALOG_JMX_PORT" "$CATALOG_DISPLAY_NAME")"
+
+        "$callback" "$server_id" "$CATALOG_APP_ID" "$app_dir" "$pid" "$CATALOG_JMX_PORT" \
+            "$CATALOG_DISPLAY_NAME" "$jvm_json" "$CATALOG_TRAP_KEY" "$app_json"
+    done
+}
+
+__emit_matched_instance() {
+    __emit_instance_line "$1" "$2" "$3" "$4" "$5" "$HOST_NAME"
+    __emit_trap_line "$TRAP_KEY_JVM" "$7"
+    __emit_trap_line "$8" "$9"
+}
+
+__send_matched_instance() {
+    __send_trap "$TRAP_KEY_JVM" "$7"
+    __send_trap "$8" "$9"
+}
+
+__noop_matched_instance() {
+    :
+}
+
+__show_and_send_matched_instance() {
+    __print_raw_trap_json "$@"
+    __send_matched_instance "$@"
+}
+
+__discover_java_on_default_ports() {
+    __foreach_well_known_match __emit_matched_instance
+}
+
+__print_discovery_report() {
+    local entry pid cmdline app_dir server_id jvm_json app_json found=0
+
+    for entry in "${DEFAULT_JMX_PORT_CATALOG[@]}"; do
+        __parse_catalog_entry "$entry"
+
+        pid="$(__java_pid_listening_on_port "$CATALOG_JMX_PORT")" || {
+            printf '[ ] %s — port %s — no Java listener\n' "$CATALOG_DISPLAY_NAME" "$CATALOG_JMX_PORT"
+            continue
+        }
+
+        cmdline="$(__process_cmdline_lowercase "$pid")"
+        if ! __cmdline_matches_pattern "$cmdline" "$CATALOG_CMDLINE_PATTERN"; then
+            printf '[?] %s — port %s — pid %s — cmdline mismatch\n' "$CATALOG_DISPLAY_NAME" "$CATALOG_JMX_PORT" "$pid"
+            printf '    %s\n' "$cmdline"
+            continue
+        fi
+
+        found=1
+        app_dir="$(__process_working_directory "$pid")"
+        server_id="${SERVER_ID}:${CATALOG_APP_ID}"
+        jvm_json="$(__build_jvm_trap_json "$app_dir" "$server_id" "$CATALOG_APP_ID" "$HOST_NAME" "$pid" "$CATALOG_JMX_PORT")"
+        app_json="$(__build_app_trap_json "$app_dir" "$server_id" "$CATALOG_APP_ID" "$HOST_NAME" "$pid" "$CATALOG_JMX_PORT" "$CATALOG_DISPLAY_NAME")"
+
+        printf '[+] %s — port %s — pid %s\n' "$CATALOG_DISPLAY_NAME" "$CATALOG_JMX_PORT" "$pid"
+        printf '    %s: %s\n' "$TRAP_KEY_JVM" "$jvm_json"
+        printf '    %s: %s\n' "$CATALOG_TRAP_KEY" "$app_json"
+        printf '\n'
+    done
+
+    [ "$found" -eq 0 ] && printf 'No matching well-known Java applications on this host.\n'
+}
+
+__print_raw_trap_json() {
+    printf '%s: %s\n' "$TRAP_KEY_JVM" "$7"
+    printf '%s: %s\n' "$8" "$9"
+}
+
+__usage() {
+    cat <<EOF
+$(basename "$0") [--dry-run] [--show | --report] | --emit
+
+Java applications with default JMX ports (Cassandra, Kafka, Tomcat, …).
+TRAP keys: zabbix.jmx.jvm.discovery + zabbix.jmx.<app>.discovery
+
+  (no flags)          Send TRAP LLD via zabbix_sender (silent)
+  --dry-run           Do not send to Zabbix
+  --show              Print TRAP payload (key: json) for each match
+  --report            Human-readable catalog scan ([ ] / [?] / [+])
+  --emit              INSTANCE/TRAP machine lines (tab-separated; no send)
+
+Send environment (when not --dry-run):
+  ZABBIX_SENDER       default: /usr/bin/zabbix_sender
+  ZABBIX_SERVER       default: 127.0.0.1
+  ZABBIX_SENDER_PORT  default: 10051
+  ZABBIX_TRAP_HOST    default: HOST_NAME
+
+Examples:
+  $(basename "$0") --dry-run --report
+  $(basename "$0") --dry-run --show
+  $(basename "$0") --show
+  $(basename "$0")
+  $(basename "$0") --emit
+
+Installed path:
+  /usr/local/bin/well-known-Z_J_gw_A_lo-discovery
+EOF
+}
+
+__main() {
+    local opt_dry_run=0 opt_show=0 opt_report=0 opt_emit=0
+    local do_send=0 match_callback=""
+
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -V|--version) printf 'well-known-Z_J_gw_A_lo-discovery %s\n' "$SCRIPT_VERSION"; exit 0 ;;
+            -h|--help) __usage; exit 0 ;;
+            --dry-run) opt_dry_run=1; shift ;;
+            --show) opt_show=1; shift ;;
+            --report) opt_report=1; shift ;;
+            --emit) opt_emit=1; shift ;;
+            *)
+                echo "Usage: $(basename "$0") [--dry-run] [--show | --report] | --emit" >&2
+                exit 1
+                ;;
+        esac
+    done
+
+    if [ "$opt_emit" -eq 1 ]; then
+        if [ "$opt_dry_run" -eq 1 ] || [ "$opt_show" -eq 1 ] || [ "$opt_report" -eq 1 ]; then
+            echo "Usage: --emit cannot be combined with --dry-run, --show, or --report" >&2
+            exit 1
+        fi
+        __discover_java_on_default_ports
+        return
+    fi
+
+    do_send=$(( opt_dry_run ? 0 : 1 ))
+
+    if [ "$opt_report" -eq 1 ]; then
+        __print_discovery_report
+    fi
+
+    if [ "$opt_show" -eq 1 ] && [ "$do_send" -eq 1 ]; then
+        match_callback=__show_and_send_matched_instance
+    elif [ "$opt_show" -eq 1 ]; then
+        match_callback=__print_raw_trap_json
+    elif [ "$do_send" -eq 1 ]; then
+        match_callback=__send_matched_instance
+    else
+        match_callback=__noop_matched_instance
+    fi
+
+    if [ "$opt_report" -eq 0 ] || [ "$opt_show" -eq 1 ] || [ "$do_send" -eq 1 ] || [ "$opt_dry_run" -eq 1 ]; then
+        __foreach_well_known_match "$match_callback"
+    fi
+}
+
+[[ "${BASH_SOURCE[0]}" == "${0}" ]] && __main "$@"

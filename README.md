@@ -15,10 +15,10 @@ Each tracked component has its **own version** (currently **1.0.0** where noted 
 | Component | Version |
 |-----------|---------|
 | `bin/zabbix_java_gw_adapter` | 1.0.0 (`--version`) |
+| `bin/well-known-Z_J_gw_A_lo-discovery` | 1.0.7 (`--version`) |
 | `zabbix_agentd.d/zabbix_java_gw_adapter_lo.conf` | 1.0.0 |
 | `template/template_generic_java_z_j_gw_a_lo.yaml` | 1.0.0 (Zabbix export format 7.4) |
 | `install.sh` | 1.0.0 (`--version`) |
-| `examples/well-known-java.example.sh` | 1.0.0 (`--version`) |
 | `examples/discovery.game-servers.example.sh` | 1.0.0 (`--version`) |
 | `docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md` | 1.0.0 |
 | `docs/zabbix_java_gw_adapter-examples.md` | 1.0.0 |
@@ -57,12 +57,14 @@ sudo systemctl restart zabbix-agent zabbix-java-gateway
 ```
 
 1. Import `template/template_generic_java_z_j_gw_a_lo.yaml` in Zabbix and link to the host.
-2. Copy/adapt a discovery example; wire `zabbix_sender` for TRAP key `zabbix.jmx.jvm.discovery`.
+2. Run `well-known-Z_J_gw_A_lo-discovery` (installed) or copy/adapt a discovery example from `examples/`; wire `zabbix_sender` for TRAP key `zabbix.jmx.jvm.discovery`.
 3. Schedule discovery (cron or systemd timer — see `cron/` and `timers/`).
 4. Verify:
 
 ```bash
-examples/well-known-java.example.sh --dry-run
+well-known-Z_J_gw_A_lo-discovery --dry-run --report
+# or from repo before install:
+bin/well-known-Z_J_gw_A_lo-discovery --dry-run --report
 zabbix_get -s localhost -k 'z_java_gw_adapter_lo[9010,"jmx[java.lang:type=Runtime,Uptime]"]'
 ```
 
@@ -82,12 +84,12 @@ Full checklist: [base doc §8](<docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md>).
 |------|------|
 | **Core** | |
 | `bin/zabbix_java_gw_adapter` | Gateway client v1.0.0 (**required**) |
+| `bin/well-known-Z_J_gw_A_lo-discovery` | Zabbix discovery for well-known Java v1.0.7 (installed to `/usr/local/bin/`) |
 | `zabbix_agentd.d/zabbix_java_gw_adapter_lo.conf` | Agent UserParameter v1.0.0 |
 | `template/template_generic_java_z_j_gw_a_lo.yaml` | Generic JVM template v1.0.0 (Zabbix 7.4 export) |
 | `install.sh` | Install script v1.0.0 |
-| **Discovery examples** | |
-| `examples/well-known-java.example.sh` | Well-known Java discovery v1.0.0 |
-| `examples/discovery.game-servers.example.sh` | Multi-instance game-server example v1.0.0 (base doc §4.4) |
+| **Discovery examples** (copy and adapt) | |
+| `examples/discovery.game-servers.example.sh` | Multi-instance game-server pattern v1.0.0 (base doc §4.4) |
 | **Schedule examples** | |
 | `cron/zabbix-jmx-discovery.cron` | Cron example v1.0.0 |
 | `timers/zabbix-jmx-discovery.service.example` | systemd oneshot v1.0.0 |
@@ -95,7 +97,7 @@ Full checklist: [base doc §8](<docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md>).
 | **Maintainer** | |
 | `docs/TODO.md` | Backlog and recommendations v1.0.0 |
 
-Example scripts implement `--dry-run` and `--emit`; production copies add **`zabbix_sender`** for instance TRAP LLD. See [base doc §4](<docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md>).
+`examples/` holds **abstract patterns** you copy and customize (e.g. game servers). Ready-made discovery scripts live in `bin/` and are installed by `install.sh`. See [base doc §4](<docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md>).
 
 ## Production defaults
 
