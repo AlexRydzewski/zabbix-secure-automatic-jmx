@@ -7,7 +7,6 @@ zabbix_export:
     - uuid: 76339d3d8dc44bfe8889a48eb3e940be
       template: 'Template App Generic Java Z_J_gw_A_lo'
       name: 'Template App Generic Java Z_J_gw_A_lo'
-      version: '1.0.0'
       description: |
         Generic JVM metrics via z_java_gw_adapter_lo active items (Z_J_gw_A_lo pattern).
         Template version: 1.0.0
