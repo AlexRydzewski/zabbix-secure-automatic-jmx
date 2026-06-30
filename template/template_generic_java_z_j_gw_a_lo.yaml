@@ -9,7 +9,7 @@ zabbix_export:
       name: 'Template App Generic Java Z_J_gw_A_lo'
       description: |
         Generic JVM metrics via z_java_gw_adapter_lo active items (Z_J_gw_A_lo pattern).
-        Template version: 1.0.0
+        Template version: 1.0.2
 
         Escaping: zabbix_java_gw_adapter __esc_json JSON-escapes the logical jmx key in the
         gateway message body. That reduces escaped backslashes in item keys from four to two
@@ -25,7 +25,7 @@ zabbix_export:
       groups:
         - name: Templates/Applications/Java
       discovery_rules:
-        - uuid: a759f5ea536b4272a6531ddbef01fa58
+        - uuid: b1c58f1e90154bdd9fb2bb6329b0654e
           name: 'JVM instance discovery'
           type: TRAP
           key: zabbix.jmx.jvm.discovery
@@ -35,7 +35,7 @@ zabbix_export:
             JVM instances from discovery TRAP (zabbix.jmx.jvm.discovery).
             Item prototypes: z_java_gw_adapter_lo — __esc_json in adapter; \\ before inner " in keys (§6).
           item_prototypes:
-            - uuid: 738dbd156cf54fdca950f61926c6c264
+            - uuid: e133c70706814b668718e9e6a9b0955a
               name: '{#SERVERID},{#APPNAME}: cl Loaded Class Count'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=ClassLoading,LoadedClassCount]"]'
@@ -54,7 +54,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: e239c822eee94e7db32dd68ba9557c3f
+            - uuid: 177f5c98734743faa24da5a07c8da0a7
               name: '{#SERVERID},{#APPNAME}: cl Total Loaded Class Count'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=ClassLoading,TotalLoadedClassCount]"]'
@@ -73,7 +73,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: d8d5a10ce1af43f4a90151eaa6ab79bb
+            - uuid: c1f1a95cd93f4ba8b6f59b9a84cc5dc2
               name: '{#SERVERID},{#APPNAME}: cl Unloaded Class Count'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=ClassLoading,UnloadedClassCount]"]'
@@ -92,7 +92,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: b1d00db0702943748371bf169e5f5704
+            - uuid: d289a24541d942ebb674634019028fe9
               name: '{#SERVERID},{#APPNAME}: comp Name of the current JIT compiler'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Compilation,Name]"]'
@@ -112,7 +112,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: bb25c07505bf4102880edf31431f2d0e
+            - uuid: a824aecb9c5d43979d260971e4a175fe
               name: "{#SERVERID},{#APPNAME}:\tcomp Accumulated time spent in compilation"
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Compilation,TotalCompilationTime]"]'
@@ -135,7 +135,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: c78d46edb7d04ed898b3f73ad7007995
+            - uuid: e32a7a60953b40c8b4b99419dc2fa93c
               name: '{#SERVERID},{#APPNAME}: mem Heap Memory committed'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.committed]"]'
@@ -155,7 +155,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: c234062a039341e0b13ff3b98139d1d4
+            - uuid: 0f977b4e8b174b449f9239d95356129a
               name: '{#SERVERID},{#APPNAME}: mem Heap Memory max'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.max]"]'
@@ -176,7 +176,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: 891be5bce788423b8939ab1c5f3094e8
+            - uuid: 36dd85bdab8f46a38545f07cb6f1960c
               name: '{#SERVERID},{#APPNAME}: mem Heap Memory used'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.used]"]'
@@ -196,7 +196,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: 5211d13d8d5448968ef0c90d4fa0644c
+            - uuid: dc2950536efd45f997fd7a1f733d5948
               name: '{#SERVERID},{#APPNAME}: mem Non-Heap Memory committed'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,NonHeapMemoryUsage.committed]"]'
@@ -216,7 +216,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: cbd34b41bec64804a7e1bb0e9c11488b
+            - uuid: 049635829a1042feba096013d197d1fc
               name: '{#SERVERID},{#APPNAME}: mem Non-Heap Memory max'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,NonHeapMemoryUsage.max]"]'
@@ -238,7 +238,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: b7ddaf7d668b40379527397e622eee15
+            - uuid: 4c6e1e3fb0aa476bbbec0a57aaaf8df5
               name: '{#SERVERID},{#APPNAME}: mem Non-Heap Memory used'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,NonHeapMemoryUsage.used]"]'
@@ -258,7 +258,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: ac5eb8996fb64983ae1a9c7de4140aae
+            - uuid: 4ae86bb3f8a14ccdacef4715b060327d
               name: '{#SERVERID},{#APPNAME}: mem Object Pending Finalization Count'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,ObjectPendingFinalizationCount]"]'
@@ -277,7 +277,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: 719b70c76b834f27a92e634272cd65be
+            - uuid: bb44d596b61c49a5a35da35a24ce8745
               name: '{#SERVERID},{#APPNAME}: os Max File Descriptor Count'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=OperatingSystem,MaxFileDescriptorCount]"]'
@@ -297,7 +297,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: 191328a90e53473eb5d5bdc68f3d6e2c
+            - uuid: a1673813848642d48a2be0c53461c3d7
               name: '{#SERVERID},{#APPNAME}: os Open File Descriptor Count'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=OperatingSystem,OpenFileDescriptorCount]"]'
@@ -316,7 +316,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: 00bf0506ca9240c2a4b88564c0fcdb6d
+            - uuid: 0770052d580747b0a17e56e6bdc7dab6
               name: '{#SERVERID},{#APPNAME}: os Process CPU Load'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=OperatingSystem,ProcessCpuLoad]"]'
@@ -341,14 +341,14 @@ zabbix_export:
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
               trigger_prototypes:
-                - uuid: a1a6b20c54c24626af32cbe7dfec9b05
+                - uuid: 44ac18b97b364c25be9ecec2c7e92c9b
                   expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=OperatingSystem,ProcessCpuLoad]"])>70'
                   name: '{#SERVERID},{#APPNAME}: 70% os Process CPU Load'
                   priority: WARNING
                   description: |
                     https://www.theserverside.com/answer/How-to-fix-high-Java-CPU-usage-problems
                     https://krzysztofslusarski.github.io/2021/09/04/jmx.html
-                - uuid: 7ae4728d9bf64d169fb714f1a92f0efa
+                - uuid: db4edcf2bf2f4622bf11d45912669bc9
                   expression: 'avg(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=OperatingSystem,ProcessCpuLoad]"],3m)>70'
                   name: '{#SERVERID},{#APPNAME}: 70% os Process CPU Load, avg(3m)'
                   priority: AVERAGE
@@ -356,7 +356,7 @@ zabbix_export:
                     https://www.theserverside.com/answer/How-to-fix-high-Java-CPU-usage-problems
                     https://krzysztofslusarski.github.io/2021/09/04/jmx.html
                     https://www.theserverside.com/answer/How-to-fix-high-Java-CPU-usage-problems
-            - uuid: 3f192174678643d8b592115b900d0176
+            - uuid: 9a26655b14014e7f8301a25e8ad9ca5a
               name: '{#SERVERID},{#APPNAME}: jvm Uptime'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"]'
@@ -380,12 +380,12 @@ zabbix_export:
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
               trigger_prototypes:
-                - uuid: 5ed54dada1294ddca7cfff6882e81621
+                - uuid: 6652cbb19aa64ee88b08096bd66c3bd4
                   expression: 'nodata(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"],3m)=1 and nodata(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"],24h)=0'
                   name: '{#SERVERID},{#APPNAME}: localhost JMX is not reachable'
                   priority: AVERAGE
                   manual_close: 'YES'
-                - uuid: bbd0c1f16e0c43eca11f37f39ad2e668
+                - uuid: c2454144ab7c4251b1c7b933578f78dc
                   expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"])<last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"],#2)'
                   recovery_mode: RECOVERY_EXPRESSION
                   recovery_expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"])>86400'
@@ -393,7 +393,7 @@ zabbix_export:
                   priority: INFO
                   description: 'The trigger will be deactivated automatically after 24 hours'
                   manual_close: 'YES'
-            - uuid: 29d16a32cbd541269f6a6105df9eee90
+            - uuid: 3ca8e561ee7a4dac9b7733f7ebd460c0
               name: '{#SERVERID},{#APPNAME}: jvm VmName'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,VmName]"]'
@@ -413,7 +413,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: 68727530de214f28a4601e26a3d9a327
+            - uuid: 387c1e6f982f4296bcbd6b563ae62f65
               name: '{#SERVERID},{#APPNAME}: jvm Version'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,VmVersion]"]'
@@ -433,7 +433,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: e336bb410c2341b098280501ec47934d
+            - uuid: 4fe4caddc31c4dc3aa36cee3a46b2eef
               name: '{#SERVERID},{#APPNAME}: th Daemon Thread Count'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Threading,DaemonThreadCount]"]'
@@ -452,7 +452,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: d7e9350b7c7c487cbe836d80ea98ff8b
+            - uuid: 94cf554a72ae4c88852f5294c66d7c56
               name: '{#SERVERID},{#APPNAME}: th Peak Thread Count'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Threading,PeakThreadCount]"]'
@@ -471,7 +471,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: 0e82771c35d144babf312cb124ca56b6
+            - uuid: a33b5540ed8c47b3b68a292d6ac79554
               name: '{#SERVERID},{#APPNAME}: th Thread Count'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Threading,ThreadCount]"]'
@@ -490,7 +490,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: 77777ab09bfb4659ba675e01419b77a6
+            - uuid: 54cc6ea78460497c8c46ad5e7da8525d
               name: '{#SERVERID},{#APPNAME}: th Total Started Thread Count'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Threading,TotalStartedThreadCount]"]'
@@ -510,21 +510,21 @@ zabbix_export:
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
           trigger_prototypes:
-            - uuid: 9b86d5deecec4bb4ac5ba34c198c0687
+            - uuid: 3e542d9ce2a34dc3829694db5fa91946
               expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.used]"])>(last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.max]"])*0.95)'
               name: '{#SERVERID},{#APPNAME}: 95% mem Heap Memory used'
               priority: AVERAGE
               description: 'Heap Memory, which is the storage for Java objects. The heap is the place in memory where your dynamically allocated objects live. Java''s heap is subject to garbage collection and the objects are usable directly.'
-            - uuid: 9255480b8f3f4f029bbb4cbf12c6bf94
+            - uuid: c4efc78c48064c5e8639f53c700a5266
               expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,NonHeapMemoryUsage.used]"])>(last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,NonHeapMemoryUsage.max]"])*0.95) and last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,NonHeapMemoryUsage.max]"])>0'
               name: '{#SERVERID},{#APPNAME}: 95% mem Non-Heap Memory used'
               priority: AVERAGE
               description: 'Non-Heap Memory, which is used by Java to store loaded classes and other meta-data. other, JVM code itself, JVM internal structures, loaded profiler agent code and data, etc.'
-            - uuid: 08ff8e5ac36b4a868b093f30a49a4912
+            - uuid: f0c3354979a44d24a9b6fe10f73482d2
               expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=OperatingSystem,OpenFileDescriptorCount]"])>(last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=OperatingSystem,MaxFileDescriptorCount]"])*0.95)'
               name: '{#SERVERID},{#APPNAME}: 95% os Opened File Descriptor Count used'
               priority: AVERAGE
-            - uuid: 65ccff552ced47fb99b58822e20097aa
+            - uuid: 13c6cc1b4612494d82ec2475fbd4c01b
               expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.committed]"])=last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.max]"])'
               name: '{#SERVERID},{#APPNAME}: mem Heap Memory fully committed'
               priority: WARNING
@@ -543,13 +543,13 @@ zabbix_export:
                     If the value of the -Xms parameter is smaller than the value of the -Xmx parameter, than not all of the space that is reserved is immediately committed to the virtual machine. The uncommitted space is labeled "virtual" in this figure. The different parts of the heap (tenured generation and young generation) can grow to the limit of the virtual space as needed.
                     For the consistent collector setting -Xms and -Xmx to the same value increases predictability by removing the most important sizing decision from the virtual machine. However, the virtual machine is then unable to compensate if you make a poor choice.
               manual_close: 'YES'
-            - uuid: 641ef736f64e4e0aad1fc7f96ab679bb
+            - uuid: c0570afaf4c34593ae36c809cbc092e3
               expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,NonHeapMemoryUsage.committed]"])=last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,NonHeapMemoryUsage.max]"])'
               name: '{#SERVERID},{#APPNAME}: mem Non-Heap Memory fully committed'
               priority: WARNING
               description: 'Non-Heap Memory, which is used by Java to store loaded classes and other meta-data. other, JVM code itself, JVM internal structures, loaded profiler agent code and data, etc.'
               manual_close: 'YES'
-            - uuid: a433319a7a3f44c3a431035aa5b2fb9d
+            - uuid: 80b111185a19456ab7f43086f217909a
               expression: 'find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,VmName]"],,"like","Server")<>1 and last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"])<180'
               recovery_mode: RECOVERY_EXPRESSION
               recovery_expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"])>86400'
@@ -557,7 +557,7 @@ zabbix_export:
               priority: INFO
               description: 'The trigger will be deactivated automatically after 24 hours'
               manual_close: 'YES'
-            - uuid: 8692f5d311b14fe2a49acce7ed4074cc
+            - uuid: 8b97039caa784f37ba167bd48fb81e52
               expression: 'find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Compilation,Name]"],,"like","Client")=1 and last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"])<180'
               recovery_mode: RECOVERY_EXPRESSION
               recovery_expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Runtime,Uptime]"])>86400'
@@ -566,7 +566,7 @@ zabbix_export:
               description: 'The trigger will be deactivated automatically after 24 hours'
               manual_close: 'YES'
           graph_prototypes:
-            - uuid: 1377e986001d49168b0264af217a9b37
+            - uuid: b4eef6a3427d43a9b4323b170d3896f2
               name: '{#SERVERID},{#APPNAME}: Memory,HeapMemoryUsage'
               graph_items:
                 - color: 00FFFF
@@ -583,7 +583,7 @@ zabbix_export:
                   item:
                     host: 'Template App Generic Java Z_J_gw_A_lo'
                     key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.used]"]'
-        - uuid: fb681785f8c44d979d9e04b6579530ef
+        - uuid: 644b47e88fa2464abd79bd7340ef9d97
           name: 'JVM GC discovery'
           type: ZABBIX_ACTIVE
           key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx.discovery[beans,\\"*:type=GarbageCollector,name=*\\"]"]'
@@ -610,7 +610,7 @@ zabbix_export:
                   return JSON.stringify(inner);
 
           item_prototypes:
-            - uuid: c2a56d2cbefe478a852f6b519576b631
+            - uuid: 8db5c495cde246929161207d92b60526
               name: '{#SERVERID},{#APPNAME}: gc {#JMXNAME} collections count'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",CollectionCount]"]'
@@ -628,7 +628,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: ed40fb1c066a445bb8aed58442b263aa
+            - uuid: 807831e642e24468b5ce590cf7721774
               name: '{#SERVERID},{#APPNAME}: gc {#JMXNAME} collections time'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",CollectionTime]"]'
@@ -654,10 +654,10 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: 2e46ef5d200e471ea54f1e151d5164ee
+            - uuid: efff2ddb5840483b9d36425916d61ee7
               name: '{#SERVERID},{#APPNAME}: gc {#JMXNAME} Name'
               type: ZABBIX_ACTIVE
-              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Name]"]'
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"java.lang:name={#JMXNAME},type=GarbageCollector\\",Name]"]'
               history: 1h
               value_type: CHAR
               preprocessing:
@@ -675,7 +675,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-        - uuid: e95d47b7f1864fc0a23acdd3890fbcc6
+        - uuid: e73fca805502469a98eb7984bf36b1ae
           name: 'JVM MemoryPool discovery'
           type: ZABBIX_ACTIVE
           key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx.discovery[beans,\\"*:type=MemoryPool,name=*\\"]"]'
@@ -702,10 +702,10 @@ zabbix_export:
                   return JSON.stringify(inner);
 
           item_prototypes:
-            - uuid: 3141146ef67241dba9fb2ee0fb4c18cf
+            - uuid: a133e8fb69004bc785a43ba63ea4d418
               name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} Name'
               type: ZABBIX_ACTIVE
-              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Name]"]'
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"java.lang:name={#JMXNAME},type=MemoryPool\\",Name]"]'
               history: 1h
               value_type: CHAR
               preprocessing:
@@ -723,7 +723,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: cae5e99f8013410facd12a3df5bb30b9
+            - uuid: 483bb68b92f74a589b6c15cbb79eb62c
               name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} committed'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.committed]"]'
@@ -745,7 +745,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: 13a2896386ca4db683a36493658d7ab3
+            - uuid: 950c9dbfdb1c41c9ae04bf9d66c7e567
               name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} max'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.max]"]'
@@ -768,7 +768,7 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
-            - uuid: 6500317096374136a1ee8906258df4aa
+            - uuid: fc986263454a4d9c8d80b152b9177da4
               name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} used'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.used]"]'
@@ -791,18 +791,18 @@ zabbix_export:
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
           trigger_prototypes:
-            - uuid: 96e1a20c306f4f5688a878d9fda1c0fc
-              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.used]"])>(last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.max]"])*0.95) and last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.max]"])>0 and not (find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Name]"],,"like","PS Eden Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Name]"],,"like","PS Survivor Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Name]"],,"like","G1 Eden Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Name]"],,"like","G1 Survivor Space")=1)'
+            - uuid: beb471b575ff410cb0b24643d291ba6c
+              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.used]"])>(last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.max]"])*0.95) and last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.max]"])>0 and not (find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"java.lang:name={#JMXNAME},type=MemoryPool\\",Name]"],,"like","PS Eden Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"java.lang:name={#JMXNAME},type=MemoryPool\\",Name]"],,"like","PS Survivor Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"java.lang:name={#JMXNAME},type=MemoryPool\\",Name]"],,"like","G1 Eden Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"java.lang:name={#JMXNAME},type=MemoryPool\\",Name]"],,"like","G1 Survivor Space")=1)'
               name: '{#SERVERID},{#APPNAME}: 95% mp {#JMXNAME} used'
               priority: AVERAGE
               description: 'https://www.freecodecamp.org/news/garbage-collection-in-java-what-is-gc-and-how-it-works-in-the-jvm/'
-            - uuid: fc568d615b234148858563be44207af3
-              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.committed]"])=last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.max]"]) and not (find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Name]"],,"like","PS Eden Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Name]"],,"like","PS Survivor Space")=1 or  find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Name]"],,"like","PS Old Gen")=1)'
+            - uuid: 73f1f75dba074773b88b79d8019555dc
+              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.committed]"])=last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.max]"]) and not (find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"java.lang:name={#JMXNAME},type=MemoryPool\\",Name]"],,"like","PS Eden Space")=1 or find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"java.lang:name={#JMXNAME},type=MemoryPool\\",Name]"],,"like","PS Survivor Space")=1 or  find(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"java.lang:name={#JMXNAME},type=MemoryPool\\",Name]"],,"like","PS Old Gen")=1)'
               name: '{#SERVERID},{#APPNAME}: mp {#JMXNAME} fully committed'
               priority: WARNING
               description: 'https://www.freecodecamp.org/news/garbage-collection-in-java-what-is-gc-and-how-it-works-in-the-jvm/'
           graph_prototypes:
-            - uuid: e49ff33cfe1540bfb5c6200a18dbf044
+            - uuid: ae96bc3db05841b2bbb4d01d5c2f5b9b
               name: '{#SERVERID},{#APPNAME}: Memory Pool {#JMXNAME},Usage'
               graph_items:
                 - color: 00FFFF
