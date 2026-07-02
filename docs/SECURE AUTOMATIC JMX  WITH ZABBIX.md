@@ -157,7 +157,7 @@ Optional later: a **single cron aggregator** over several `--emit` scripts (§4.
 
 | Layer                                  | Responsibility                                                                         |
 | -------------------------------------- | -------------------------------------------------------------------------------------- |
-| **Discovery scripts** (required today) | Find instances; send TRAP LLD (`zabbix.jmx.<name>.discovery`); product-specific logic. |
+| **Discovery scripts** (required today) | Find instances; send TRAP LLD (`<name>.discovery[Z_J_gw_A_lo]`); product-specific logic. |
 | **Zabbix templates**                   | Instance LLD rules; `jmx.discovery` for GC/MBeans; items; triggers; graphs.            |
 | `zabbix_java_gw_adapter`               | Binary protocol to local Java gateway; JSON-escape via `__esc_json`.                   |
 | **Zabbix agent**                       | Active checks; UserParameter `z_java_gw_adapter_lo`.                                   |
@@ -191,7 +191,7 @@ Discovery scripts do **not** probe JMX beans for metrics. GC, memory pools, and 
 
 - One cron entry instead of many
 - Ordered bundle execution and skip-if-already-seen (PID / JMX port)
-- Shared TRAP key naming (`zabbix.jmx.<name>.discovery`) and JSON escaping
+- Shared TRAP key naming (`<name>.discovery[Z_J_gw_A_lo]`) and JSON escaping
 - Optional wiring: a shared loader consumes `--emit` output from standalone scripts
 
 
@@ -299,7 +299,7 @@ wsPath=/game
 5. Skip the instance if PID or JMX port cannot be resolved unambiguously.
 6. Build TRAP rows and output (see below).
 
-Environment overrides: `CONFIG_DIR`, `JMX_PORT_POOL_BEGIN`, `JMX_PORT_POOL_LENGTH`, `TRAP_KEY_GAME` (default `zabbix.jmx.game.discovery`).
+Environment overrides: `CONFIG_DIR`, `JMX_PORT_POOL_BEGIN`, `JMX_PORT_POOL_LENGTH`, `TRAP_KEY_GAME` (default `game.discovery[Z_J_gw_A_lo]`).
 
 #### TRAP keys and macros
 
@@ -308,11 +308,11 @@ Each running instance produces two logical registrations:
 
 | TRAP key                    | Zabbix template                         | Macros                                                                      |
 | --------------------------- | --------------------------------------- | --------------------------------------------------------------------------- |
-| `zabbix.jmx.jvm.discovery`  | *Template App Generic Java Z_J_gw_A_lo* | `{#APPDIR}`, `{#SERVERID}`, `{#APPNAME}`, `{#HOST}`, `{#PID}`, `{#JMXPORT}` |
-| `zabbix.jmx.game.discovery` | Application template (you provide)      | above + `{#HTTPPORT}`, `{#WSPATH}`                                          |
+| `jvm.discovery[Z_J_gw_A_lo]`  | *Template App Generic Java Z_J_gw_A_lo* | `{#APPDIR}`, `{#SERVERID}`, `{#APPNAME}`, `{#HOST}`, `{#PID}`, `{#JMXPORT}` |
+| `game.discovery[Z_J_gw_A_lo]` | Application template (you provide)      | above + `{#HTTPPORT}`, `{#WSPATH}`                                          |
 
 
-Generic JVM metrics and GC/memory-pool LLD come from the **template** after `zabbix.jmx.jvm.discovery` — not from the discovery script.
+Generic JVM metrics and GC/memory-pool LLD come from the **template** after `jvm.discovery[Z_J_gw_A_lo]` — not from the discovery script.
 
 #### Script interface
 
@@ -325,7 +325,7 @@ discovery.game-servers.example.sh --emit      # machine output: INSTANCE and TRA
 
 ```text
 INSTANCE	SERVER_ID	APP_NAME	APPDIR	PID	JMXPORT	HOST
-TRAP	zabbix.jmx.game.discovery	{"{#APPDIR}":"…",…}
+TRAP	game.discovery[Z_J_gw_A_lo]	{"{#APPDIR}":"…",…}
 ```
 
 
@@ -337,7 +337,7 @@ TRAP	zabbix.jmx.game.discovery	{"{#APPDIR}":"…",…}
 3. **Dry-run:** `discovery.game-servers.sh --dry-run` until every expected instance shows `[+]`.
 4. **Send TRAP:** add `zabbix_sender` calls in your copy, or parse `--emit` and send each key — the example intentionally stops at `--emit` so you can inspect rows before wiring send.
 5. **Cron:** schedule your script (one cron entry per product script; see §4.0).
-6. Import and link *Template App Generic Java Z_J_gw_A_lo* plus an application template with LLD rule `zabbix.jmx.game.discovery`.
+6. Import and link *Template App Generic Java Z_J_gw_A_lo* plus an application template with LLD rule `game.discovery[Z_J_gw_A_lo]`.
 
 
 
@@ -380,7 +380,7 @@ After instance TRAP provides `{#JMXPORT}` (and identity macros):
 
 | Rule            | Detail                                                                       |
 | --------------- | ---------------------------------------------------------------------------- |
-| TRAP rule       | `zabbix.jmx.jvm.discovery` — instances only                                  |
+| TRAP rule       | `jvm.discovery[Z_J_gw_A_lo]` — instances only                                  |
 | Child LLD       | `jmx.discovery` for GC and memory pools (active, via `z_java_gw_adapter_lo`) |
 | Item prototypes | All metrics via `z_java_gw_adapter_lo[{#JMXPORT},"jmx[…]"]`                  |
 
@@ -555,11 +555,11 @@ All items in `template_generic_java_z_j_gw_a_lo.yaml` use `z_java_gw_adapter_lo[
 | Path                                              | Track | Version | Role                                               |
 | ------------------------------------------------- | ----- | ------- | -------------------------------------------------- |
 | `bin/zabbix_java_gw_adapter`                      | yes   | 1.0.0   | Gateway protocol client (**required**)             |
-| `bin/well-known-Z_J_gw_A_lo-discovery`              | yes   | 1.0.9   | Zabbix discovery for well-known Java apps          |
+| `bin/well-known-Z_J_gw_A_lo-discovery`              | yes   | 1.0.12  | Zabbix discovery for well-known Java apps          |
 | `zabbix_agentd.d/zabbix_java_gw_adapter_lo.conf`  | yes   | 1.0.0   | UserParameter `z_java_gw_adapter_lo`               |
-| `template/template_generic_java_z_j_gw_a_lo.yaml` | yes   | 1.0.0   | Generic JVM Zabbix template                        |
+| `template/template_generic_java_z_j_gw_a_lo.yaml` | yes   | 1.0.4   | Generic JVM Zabbix template                        |
 | `install.sh`                                      | yes   | 1.0.0   | Install adapter, agent drop-in, well-known script  |
-| `examples/discovery.game-servers.example.sh`      | yes   | 1.0.0   | Multi-instance game-server pattern (§4.4)          |
+| `examples/discovery.game-servers.example.sh`      | yes   | 1.0.1   | Multi-instance game-server pattern (§4.4)          |
 | `cron/zabbix-jmx-discovery.cron`                  | yes   | 1.0.0   | Cron example (`/etc/cron.d/`)                      |
 | `timers/zabbix-jmx-discovery.*.example`           | yes   | 1.0.0   | systemd timer + oneshot service example            |
 | `docs/SECURE AUTOMATIC JMX WITH ZABBIX.md`        | yes   | 1.0.0   | **This file** — base documentation                 |
@@ -653,7 +653,7 @@ The sample UserParameter in `zabbix_agentd.d/zabbix_java_gw_adapter_lo.conf` pas
 | **Z_J_gw_A_lo**      | Zabbix + Java gateway + Active agent + localhost                                        |
 | **Discovery script** | Standalone script that finds instances and sends TRAP LLD                               |
 | **Discovery engine** | Optional future aggregator — not part of today's minimum deploy                         |
-| **TRAP LLD**         | LLD fed by `zabbix_sender`, not server-side polling; keys `zabbix.jmx.<name>.discovery` |
+| **TRAP LLD**         | LLD fed by `zabbix_sender`, not server-side polling; keys `<name>.discovery[Z_J_gw_A_lo]` |
 
 
 ---

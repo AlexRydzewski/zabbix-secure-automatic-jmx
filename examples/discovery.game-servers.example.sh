@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # custom bundle — multi-instance game servers from enabled/*.properties
-# Version: 1.0.0
+# Version: 1.0.1
 # zabbix-secure-automatic-jmx — Alexander Rydzewski <rydzewski.al@gmail.com>
 #
 # Scenario walkthrough: docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md §4.4
@@ -11,8 +11,8 @@
 #   discovery.game-servers.sh --emit
 #
 # Each running instance registers:
-#   zabbix.jmx.jvm.discovery   → Template App Generic Java Z_J_gw_A_lo
-#   zabbix.jmx.game.discovery  → application template (service URL macros)
+#   jvm.discovery[Z_J_gw_A_lo]   → Template App Generic Java Z_J_gw_A_lo
+#   game.discovery[Z_J_gw_A_lo]  → application template (service URL macros)
 #
 # Expected properties per instance (server.properties style):
 #   SERVER_ID=eu1-alpha
@@ -24,14 +24,14 @@
 
 set -euo pipefail
 
-readonly SCRIPT_VERSION='1.0.0'
+readonly SCRIPT_VERSION='1.0.1'
 
 CONFIG_DIR="${CONFIG_DIR:-/etc/game/enabled}"
 HOST_NAME="${HOST_NAME:-$(hostname)}"
 JMX_PORT_POOL_BEGIN="${JMX_PORT_POOL_BEGIN:-9010}"
 JMX_PORT_POOL_LENGTH="${JMX_PORT_POOL_LENGTH:-19}"
 JMX_PORT_POOL_END=$((JMX_PORT_POOL_BEGIN + JMX_PORT_POOL_LENGTH))
-TRAP_KEY_GAME="${TRAP_KEY_GAME:-zabbix.jmx.game.discovery}"
+TRAP_KEY_GAME="${TRAP_KEY_GAME:-game.discovery[Z_J_gw_A_lo]}"
 
 __json_escape_string() {
     local s=$1 out="" i c
@@ -204,7 +204,7 @@ __print_dry_run() {
         row_json="$(__build_game_trap_json "$c_SERVER_ID" "$app_name" "$c_APP_HOME" "$HOST_NAME" "$pid" "$jmx_port" "${c_port:-0}" "${c_wsPath:-/}")"
 
         printf '    [+] %s — pid %s — jmx %s — http %s\n' "$c_SERVER_ID" "$pid" "$jmx_port" "${c_port:-0}"
-        printf '    zabbix.jmx.jvm.discovery instance: %s\t%s\t%s\t%s\t%s\t%s\n' \
+        printf '    jvm.discovery[Z_J_gw_A_lo] instance: %s\t%s\t%s\t%s\t%s\t%s\n' \
             "$c_SERVER_ID" "$app_name" "$c_APP_HOME" "$pid" "$jmx_port" "$HOST_NAME"
         printf '    %s: %s\n\n' "$TRAP_KEY_GAME" "$row_json"
     done < <(find "$CONFIG_DIR" -maxdepth 1 \( -type f -o -type l \) -name '*.properties' -print0 2>/dev/null)
@@ -227,7 +227,7 @@ Environment:
   CONFIG_DIR              default: /etc/game/enabled
   JMX_PORT_POOL_BEGIN     default: 9010
   JMX_PORT_POOL_LENGTH    default: 19
-  TRAP_KEY_GAME           default: zabbix.jmx.game.discovery
+  TRAP_KEY_GAME           default: game.discovery[Z_J_gw_A_lo]
 EOF
 }
 

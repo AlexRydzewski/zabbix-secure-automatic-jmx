@@ -324,7 +324,7 @@ zabbix_java_gw_adapter localhost "$JMX_PORT" \
 ### 1.3 JMX discovery — garbage collectors (beans mode, template LLD)
 
 Pattern from [Zabbix JMX LLD docs](https://www.zabbix.com/documentation/3.4/en/manual/discovery/low_level_discovery/jmx).  
-Template **JVM GC discovery** uses this key (per `{#JMXPORT}` from `zabbix.jmx.jvm.discovery`).
+Template **JVM GC discovery** uses this key (per `{#JMXPORT}` from `jvm.discovery[Z_J_gw_A_lo]`).
 
 Direct adapter (**layer 1** — note `\"` inside single-quoted arg, not `\\"`):
 
@@ -618,4 +618,4 @@ z_java_gw_adapter_lo[{#JMXPORT},"jmx.discovery[beans,\\"*:type=GarbageCollector,
 z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",CollectionCount]"]
 ```
 
-TRAP discovery fills `{#JMXPORT}` from `zabbix.jmx.jvm.discovery`. GC and memory-pool LLD rule prototypes use `{#JMXOBJ}` / `{#JMXNAME}` from template `jmx.discovery[beans,...]`. All other generic JVM metrics are template active item prototypes under the same parent rule.
+TRAP discovery fills `{#JMXPORT}` from `jvm.discovery[Z_J_gw_A_lo]`. GC and memory-pool LLD rule prototypes use `{#JMXOBJ}` / `{#JMXNAME}` from template `jmx.discovery[beans,...]`. All other generic JVM metrics are template active item prototypes under the same parent rule.

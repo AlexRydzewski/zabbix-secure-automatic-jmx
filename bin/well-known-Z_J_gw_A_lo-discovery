@@ -2,7 +2,7 @@
 # well-known-Z_J_gw_A_lo-discovery — TRAP LLD for well-known Java apps (Cassandra, Kafka, Tomcat, …).
 # Naming: <catalog>-<pattern>-discovery  (pattern Z_J_gw_A_lo = Zabbix + Java gw + Active agent + localhost JMX).
 # Ready-made script (not an example — see examples/ for copy-and-adapt patterns).
-# Version: 1.0.9
+# Version: 1.0.12
 # zabbix-secure-automatic-jmx — Alexander Rydzewski <rydzewski.al@gmail.com>
 #
 # Standalone discovery script — run directly on the host.
@@ -13,16 +13,16 @@
 #   --emit              Machine INSTANCE/TRAP lines (tab-separated; no send)
 #
 # Each match registers:
-#   zabbix.jmx.jvm.discovery      → Template App Generic Java Z_J_gw_A_lo
-#   zabbix.jmx.<app>.discovery    → application template (assumed on host)
+#   jvm.discovery[Z_J_gw_A_lo]      → Template App Generic Java Z_J_gw_A_lo
+#   <app>.discovery[Z_J_gw_A_lo]    → application template (assumed on host)
 #
 # Catalog field order (internal):
 #   TRAP_KEY | APP_ID | DEFAULT_JMX_PORT | DISPLAY_NAME | CMDLINE_PATTERN
 
 set -euo pipefail
 
-readonly SCRIPT_VERSION='1.0.9'
-readonly TRAP_KEY_JVM='zabbix.jmx.jvm.discovery'
+readonly SCRIPT_VERSION='1.0.12'
+readonly TRAP_KEY_JVM='jvm.discovery[Z_J_gw_A_lo]'
 
 SERVER_ID="${SERVER_ID:-$(hostname -s 2>/dev/null || hostname)}"
 HOST_NAME="${HOST_NAME:-$(hostname)}"
@@ -33,14 +33,14 @@ ZABBIX_TRAP_HOST="${ZABBIX_TRAP_HOST:-$HOST_NAME}"
 
 # TRAP key | app id | JMX port | display name | extended-regex for cmdline (optional match)
 DEFAULT_JMX_PORT_CATALOG=(
-    'zabbix.jmx.cassandra.discovery|cassandra|7199|Apache Cassandra|cassandra|org\.apache\.cassandra'
-    'zabbix.jmx.kafka.discovery|kafka|9999|Apache Kafka|kafka\.Kafka|kafka-server'
-    'zabbix.jmx.tomcat.discovery|tomcat|8004|Apache Tomcat|catalina|tomcat|org\.apache\.catalina'
-    'zabbix.jmx.activemq.discovery|activemq|1099|Apache ActiveMQ|activemq|org\.apache\.activemq'
-    'zabbix.jmx.elasticsearch.discovery|elasticsearch|9010|Elasticsearch|elasticsearch'
-    'zabbix.jmx.hbase.discovery|hbase|10101|Apache HBase|hbase|org\.apache\.hadoop\.hbase'
-    'zabbix.jmx.solr.discovery|solr|18983|Apache Solr|solr|org\.apache\.solr'
-    'zabbix.jmx.jetty.discovery|jetty|1099|Eclipse Jetty|jetty|org\.eclipse\.jetty'
+    'cassandra.discovery[Z_J_gw_A_lo]|cassandra|7199|Apache Cassandra|cassandra|org\.apache\.cassandra'
+    'kafka.discovery[Z_J_gw_A_lo]|kafka|9999|Apache Kafka|kafka\.Kafka|kafka-server'
+    'tomcat.discovery[Z_J_gw_A_lo]|tomcat|8004|Apache Tomcat|catalina|tomcat|org\.apache\.catalina'
+    'activemq.discovery[Z_J_gw_A_lo]|activemq|1099|Apache ActiveMQ|activemq|org\.apache\.activemq'
+    'elasticsearch.discovery[Z_J_gw_A_lo]|elasticsearch|9010|Elasticsearch|elasticsearch'
+    'hbase.discovery[Z_J_gw_A_lo]|hbase|10101|Apache HBase|hbase|org\.apache\.hadoop\.hbase'
+    'solr.discovery[Z_J_gw_A_lo]|solr|18983|Apache Solr|solr|org\.apache\.solr'
+    'jetty.discovery[Z_J_gw_A_lo]|jetty|1099|Eclipse Jetty|jetty|org\.eclipse\.jetty'
 )
 
 __json_escape_string() {
@@ -222,7 +222,7 @@ __usage() {
 $(basename "$0") [--dry-run] [--show | --report] | --emit
 
 Java applications with default JMX ports (Cassandra, Kafka, Tomcat, …).
-TRAP keys: zabbix.jmx.jvm.discovery + zabbix.jmx.<app>.discovery
+TRAP keys: jvm.discovery[Z_J_gw_A_lo] + <app>.discovery[Z_J_gw_A_lo]
 
   (no flags)          Send TRAP LLD via zabbix_sender (silent)
   --dry-run           Do not send to Zabbix
