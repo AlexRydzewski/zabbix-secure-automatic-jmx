@@ -9,7 +9,7 @@ zabbix_export:
       name: 'Template App Generic Java Z_J_gw_A_lo'
       description: |
         Generic JVM metrics via z_java_gw_adapter_lo active items (Z_J_gw_A_lo pattern).
-        Template version: 1.0.4
+        Template version: 1.0.5
 
         Escaping: zabbix_java_gw_adapter __esc_json JSON-escapes the logical jmx key in the
         gateway message body. That reduces escaped backslashes in item keys from four to two
@@ -22,6 +22,13 @@ zabbix_export:
         https://blog.zabbix.com/new-monitoring-possibilities-for-java-applications-in-zabbix-3-4/5972/
         https://www.zabbix.com/documentation/current/en/manual/concepts/java
         Discovery: standalone discovery scripts (well_known_java + custom bundles)
+      vendor:
+        name: zabbix-secure-automatic-jmx
+        version: 1.0.5
+      readme: |
+        ## Source
+
+        [zabbix-secure-automatic-jmx on GitHub](https://github.com/AlexRydzewski/zabbix-secure-automatic-jmx)
       groups:
         - name: Templates/Applications/Java
       discovery_rules:
@@ -159,6 +166,27 @@ zabbix_export:
               name: '{#SERVERID},{#APPNAME}: mem Heap Memory max'
               type: ZABBIX_ACTIVE
               key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.max]"]'
+              delay: 1h
+              history: 1w
+              trends: 4w
+              units: B
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$.data[0].value'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:Memory'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: f8883ec211264826985e1c76c47c8a0f
+              name: '{#SERVERID},{#APPNAME}: mem Heap Memory init'
+              type: ZABBIX_ACTIVE
+              key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.init]"]'
               delay: 1h
               history: 1w
               trends: 4w
@@ -525,7 +553,7 @@ zabbix_export:
               name: '{#SERVERID},{#APPNAME}: 95% os Opened File Descriptor Count used'
               priority: AVERAGE
             - uuid: 13c6cc1b4612494d82ec2475fbd4c01b
-              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.committed]"])=last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.max]"])'
+              expression: 'last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.committed]"])=last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.max]"]) and last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.init]"])<last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.max]"]) and last(/Template App Generic Java Z_J_gw_A_lo/z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.max]"])>0'
               name: '{#SERVERID},{#APPNAME}: mem Heap Memory fully committed'
               priority: WARNING
               description: |
@@ -583,6 +611,11 @@ zabbix_export:
                   item:
                     host: 'Template App Generic Java Z_J_gw_A_lo'
                     key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.used]"]'
+                - sortorder: '3'
+                  color: FFD700
+                  item:
+                    host: 'Template App Generic Java Z_J_gw_A_lo'
+                    key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[java.lang:type=Memory,HeapMemoryUsage.init]"]'
         - uuid: 644b47e88fa2464abd79bd7340ef9d97
           name: 'JVM GC discovery'
           type: ZABBIX_ACTIVE
@@ -819,3 +852,8 @@ zabbix_export:
                   item:
                     host: 'Template App Generic Java Z_J_gw_A_lo'
                     key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",Usage.used]"]'
+      tags:
+        - tag: class
+          value: software
+        - tag: target
+          value: java
