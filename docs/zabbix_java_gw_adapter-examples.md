@@ -382,7 +382,10 @@ Item prototypes — **layer 0** logical form (what `{#JMXOBJ}` expands to):
 
 ```text
 jmx["{#JMXOBJ}",CollectionCount]
+jmx["{#JMXOBJ}",CollectionTime]
 ```
+
+Full GC item inventory (raw, rates, avg duration): [base doc §5 — Garbage collector metrics](<SECURE AUTOMATIC JMX  WITH ZABBIX.md#garbage-collector-metrics-v106>).
 
 In a template item key that becomes **layer 2** or **layer 3** escaping around `{#JMXOBJ}` (see quick reference above).
 
@@ -618,4 +621,4 @@ z_java_gw_adapter_lo[{#JMXPORT},"jmx.discovery[beans,\\"*:type=GarbageCollector,
 z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",CollectionCount]"]
 ```
 
-TRAP discovery fills `{#JMXPORT}` from `jvm.discovery[Z_J_gw_A_lo]`. GC and memory-pool LLD rule prototypes use `{#JMXOBJ}` / `{#JMXNAME}` from template `jmx.discovery[beans,...]`. All other generic JVM metrics are template active item prototypes under the same parent rule.
+TRAP discovery fills `{#JMXPORT}` from `jvm.discovery[Z_J_gw_A_lo]`. GC and memory-pool LLD rule prototypes use `{#JMXOBJ}` / `{#JMXNAME}` from template `jmx.discovery[beans,...]`. Instance-level JVM metrics are active item prototypes under the parent TRAP rule; GC child LLD adds raw, dependent, and calculated items (inventory: [base doc §5](<SECURE AUTOMATIC JMX  WITH ZABBIX.md#garbage-collector-metrics-v106>)).

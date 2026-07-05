@@ -9,7 +9,7 @@ zabbix_export:
       name: 'Template App Generic Java Z_J_gw_A_lo'
       description: |
         Generic JVM metrics via z_java_gw_adapter_lo active items (Z_J_gw_A_lo pattern).
-        Template version: 1.0.5
+        Template version: 1.0.6
 
         Escaping: zabbix_java_gw_adapter __esc_json JSON-escapes the logical jmx key in the
         gateway message body. That reduces escaped backslashes in item keys from four to two
@@ -24,11 +24,16 @@ zabbix_export:
         Discovery: standalone discovery scripts (well_known_java + custom bundles)
       vendor:
         name: zabbix-secure-automatic-jmx
-        version: 1.0.5
+        version: 1.0.6
       readme: |
         ## Source
 
         [zabbix-secure-automatic-jmx on GitHub](https://github.com/AlexRydzewski/zabbix-secure-automatic-jmx)
+
+        ## GC metrics (v1.0.6+)
+
+        Per collector: raw `CollectionCount` / `CollectionTime`, count p/s, time p/s,
+        lifetime avg duration, interval avg duration p/s. See repository base doc §5.
       groups:
         - name: Templates/Applications/Java
       discovery_rules:
@@ -650,11 +655,16 @@ zabbix_export:
               history: 1w
               value_type: FLOAT
               trends: 4w
+              description: 'Cumulative JVM counter since JVM start (CollectionCount).'
               preprocessing:
                 - type: JSONPATH
                   parameters:
                     - '$.data[0].value'
               tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:GarbageCollector'
                 - tag: Application
                   value: 'Java:Application'
                 - tag: Application
@@ -669,6 +679,7 @@ zabbix_export:
               value_type: FLOAT
               trends: 4w
               units: s
+              description: 'Cumulative JVM counter since JVM start (CollectionTime, ms converted to s).'
               preprocessing:
                 - type: JSONPATH
                   parameters:
@@ -708,6 +719,119 @@ zabbix_export:
                   value: '{#APPNAME}'
                 - tag: Application
                   value: '{#SERVERID},{#APPNAME}'
+            - uuid: bf542641c9e14886aa8ab4002a7f10ec
+              name: '{#SERVERID},{#APPNAME}: gc {#JMXNAME} collection avg duration'
+              type: CALCULATED
+              key: 'gc.collections.avg.duration[{#JMXPORT},{#JMXNAME}]'
+              history: 1w
+              value_type: FLOAT
+              trends: 4w
+              units: s
+              params: '(last(//z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",CollectionTime]"])/(last(//z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",CollectionCount]"])+(last(//z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",CollectionCount]"])=0)))*(last(//z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",CollectionCount]"])>0)'
+              description: 'Lifetime cumulative average GC pause per collection (CollectionTime / CollectionCount).'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:GarbageCollector'
+                - tag: Application
+                  value: 'Java:Application'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: 7c5463fb9f0d4b528b9ece33ebb38ffb
+              name: '{#SERVERID},{#APPNAME}: gc {#JMXNAME} collection count p/s'
+              type: DEPENDENT
+              key: 'gc.collections.count.rate[{#JMXPORT},{#JMXNAME}]'
+              history: 1w
+              value_type: FLOAT
+              trends: 4w
+              units: '!collections/s'
+              description: 'Collections per second (CHANGE_PER_SECOND on CollectionCount).'
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+              master_item:
+                key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",CollectionCount]"]'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:GarbageCollector'
+                - tag: Application
+                  value: 'Java:Application'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: 0692cb57968d4ff2b23a8b24cb8664e4
+              name: '{#SERVERID},{#APPNAME}: gc {#JMXNAME} collection time p/s'
+              type: DEPENDENT
+              key: 'gc.collections.time.rate[{#JMXPORT},{#JMXNAME}]'
+              history: 1w
+              value_type: FLOAT
+              trends: 4w
+              units: '!s/s'
+              description: 'GC seconds consumed per wall-clock second (CHANGE_PER_SECOND on CollectionTime).'
+              preprocessing:
+                - type: CHANGE_PER_SECOND
+              master_item:
+                key: 'z_java_gw_adapter_lo[{#JMXPORT},"jmx[\\"{#JMXOBJ}\\",CollectionTime]"]'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:GarbageCollector'
+                - tag: Application
+                  value: 'Java:Application'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+            - uuid: 87cd967c22a0462f826765562f697daa
+              name: '{#SERVERID},{#APPNAME}: gc {#JMXNAME} collection avg duration p/s'
+              type: CALCULATED
+              key: 'gc.collections.avg.duration.rate[{#JMXPORT},{#JMXNAME}]'
+              history: 1w
+              value_type: FLOAT
+              trends: 4w
+              units: s
+              params: '(last(//gc.collections.time.rate[{#JMXPORT},{#JMXNAME}])/(last(//gc.collections.count.rate[{#JMXPORT},{#JMXNAME}])+(last(//gc.collections.count.rate[{#JMXPORT},{#JMXNAME}])=0)))*(last(//gc.collections.count.rate[{#JMXPORT},{#JMXNAME}]) > 0)'
+              description: 'Interval rolling average GC pause per collection (collection time p/s / collection count p/s).'
+              tags:
+                - tag: Application
+                  value: JVM
+                - tag: Application
+                  value: 'JVM:GarbageCollector'
+                - tag: Application
+                  value: 'Java:Application'
+                - tag: Application
+                  value: '{#APPNAME}'
+                - tag: Application
+                  value: '{#SERVERID},{#APPNAME}'
+          graph_prototypes:
+            - uuid: 35d3f2b740bb421c8c69ed7194393b43
+              name: '{#SERVERID},{#APPNAME}: GC {#JMXNAME} activity'
+              graph_items:
+                - color: 199C0D
+                  item:
+                    host: 'Template App Generic Java Z_J_gw_A_lo'
+                    key: 'gc.collections.count.rate[{#JMXPORT},{#JMXNAME}]'
+                - sortorder: '1'
+                  color: 1A7C11
+                  item:
+                    host: 'Template App Generic Java Z_J_gw_A_lo'
+                    key: 'gc.collections.time.rate[{#JMXPORT},{#JMXNAME}]'
+                - sortorder: '2'
+                  color: F63100
+                  item:
+                    host: 'Template App Generic Java Z_J_gw_A_lo'
+                    key: 'gc.collections.avg.duration[{#JMXPORT},{#JMXNAME}]'
+                - sortorder: '3'
+                  color: 2774A4
+                  item:
+                    host: 'Template App Generic Java Z_J_gw_A_lo'
+                    key: 'gc.collections.avg.duration.rate[{#JMXPORT},{#JMXNAME}]'
         - uuid: e73fca805502469a98eb7984bf36b1ae
           name: 'JVM MemoryPool discovery'
           type: ZABBIX_ACTIVE

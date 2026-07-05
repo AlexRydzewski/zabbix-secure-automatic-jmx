@@ -382,10 +382,30 @@ After instance TRAP provides `{#JMXPORT}` (and identity macros):
 | --------------- | ---------------------------------------------------------------------------- |
 | TRAP rule       | `jvm.discovery[Z_J_gw_A_lo]` — instances only                                  |
 | Child LLD       | `jmx.discovery` for GC and memory pools (active, via `z_java_gw_adapter_lo`) |
-| Item prototypes | All metrics via `z_java_gw_adapter_lo[{#JMXPORT},"jmx[…]"]`                  |
+| Item prototypes | Instance metrics: active `z_java_gw_adapter_lo[{#JMXPORT},"jmx[…]"]`; GC child LLD also has dependent and calculated items (see below) |
 
 
 Import: `template/template_generic_java_z_j_gw_a_lo.yaml`
+
+#### Garbage collector metrics (v1.0.6+)
+
+Per discovered collector (`{#JMXNAME}` from **JVM GC discovery** child LLD). Seven items per collector (v1.0.6+):
+
+| Item | Key | Type |
+|------|-----|------|
+| collections count (raw) | `z_java_gw_adapter_lo[{#JMXPORT},"jmx[\"{#JMXOBJ}\",CollectionCount]"]` | active |
+| collections time (raw) | `z_java_gw_adapter_lo[{#JMXPORT},"jmx[\"{#JMXOBJ}\",CollectionTime]"]` | active |
+| Name | `z_java_gw_adapter_lo[{#JMXPORT},"jmx[\"java.lang:name={#JMXNAME},type=GarbageCollector\",Name]"]` | active (CHAR) |
+| collection avg duration | `gc.collections.avg.duration[{#JMXPORT},{#JMXNAME}]` | calculated — lifetime `CollectionTime / CollectionCount` |
+| collection count p/s | `gc.collections.count.rate[{#JMXPORT},{#JMXNAME}]` | dependent — `CHANGE_PER_SECOND` on count |
+| collection time p/s | `gc.collections.time.rate[{#JMXPORT},{#JMXNAME}]` | dependent — `CHANGE_PER_SECOND` on time |
+| collection avg duration p/s | `gc.collections.avg.duration.rate[{#JMXPORT},{#JMXNAME}]` | calculated — `time_rate / count_rate` |
+
+Raw JMX keys above are **layer 0** (logical); stored template keys use `\\"` — see §6 and `docs/zabbix_java_gw_adapter-examples.md` §1.3.
+
+Graph prototype: `{#SERVERID},{#APPNAME}: GC {#JMXNAME} activity` (count p/s, time p/s, both avg duration items).
+
+> **Note:** §0 Issue 1 describes gaps in the *official* Zabbix Generic Java JMX template. This repository's template (v1.0.6+) extends GC monitoring with the items above; triggers for GC are not yet included.
 
 ### Application templates
 
@@ -557,7 +577,7 @@ All items in `template_generic_java_z_j_gw_a_lo.yaml` use `z_java_gw_adapter_lo[
 | `bin/zabbix_java_gw_adapter`                      | yes   | 1.0.0   | Gateway protocol client (**required**)             |
 | `bin/well-known-Z_J_gw_A_lo-discovery`              | yes   | 1.0.12  | Zabbix discovery for well-known Java apps          |
 | `zabbix_agentd.d/zabbix_java_gw_adapter_lo.conf`  | yes   | 1.0.0   | UserParameter `z_java_gw_adapter_lo`               |
-| `template/template_generic_java_z_j_gw_a_lo.yaml` | yes   | 1.0.4   | Generic JVM Zabbix template                        |
+| `template/template_generic_java_z_j_gw_a_lo.yaml` | yes   | 1.0.6   | Generic JVM Zabbix template                        |
 | `install.sh`                                      | yes   | 1.0.0   | Install adapter, agent drop-in, well-known script  |
 | `examples/discovery.game-servers.example.sh`      | yes   | 1.0.1   | Multi-instance game-server pattern (§4.4)          |
 | `cron/zabbix-jmx-discovery.cron`                  | yes   | 1.0.0   | Cron example (`/etc/cron.d/`)                      |

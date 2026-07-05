@@ -17,7 +17,7 @@ Each tracked component has its **own version** (currently **1.0.0** where noted 
 | `bin/zabbix_java_gw_adapter` | 1.0.0 (`--version`) |
 | `bin/well-known-Z_J_gw_A_lo-discovery` | 1.0.12 (`--version`) |
 | `zabbix_agentd.d/zabbix_java_gw_adapter_lo.conf` | 1.0.0 |
-| `template/template_generic_java_z_j_gw_a_lo.yaml` | 1.0.4 (Zabbix export format 7.4) |
+| `template/template_generic_java_z_j_gw_a_lo.yaml` | 1.0.6 (Zabbix export format 7.4) |
 | `install.sh` | 1.0.0 (`--version`) |
 | `examples/discovery.game-servers.example.sh` | 1.0.1 (`--version`) |
 | `docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md` | 1.0.0 |
@@ -74,7 +74,7 @@ Full checklist: [base doc §8](<docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md>).
 
 | Document | Purpose |
 |----------|---------|
-| **[docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md](<docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md>)** | **Base reference** — architecture, discovery, templates, escaping, deployment, auth |
+| **[docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md](<docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md>)** | **Base reference** — architecture, discovery, templates (§5 metric inventory), escaping, deployment, auth |
 | [docs/zabbix_java_gw_adapter-examples.md](docs/zabbix_java_gw_adapter-examples.md) | Escaping layers and `zabbix_get` cookbook (§6 detail) |
 | [docs/TODO.md](docs/TODO.md) | Maintainer backlog and recommendations |
 
@@ -86,7 +86,7 @@ Full checklist: [base doc §8](<docs/SECURE AUTOMATIC JMX  WITH ZABBIX.md>).
 | `bin/zabbix_java_gw_adapter` | Gateway client v1.0.0 (**required**) |
 | `bin/well-known-Z_J_gw_A_lo-discovery` | Zabbix discovery for well-known Java v1.0.12 (installed to `/usr/local/bin/`) |
 | `zabbix_agentd.d/zabbix_java_gw_adapter_lo.conf` | Agent UserParameter v1.0.0 |
-| `template/template_generic_java_z_j_gw_a_lo.yaml` | Generic JVM template v1.0.4 (Zabbix 7.4 export) |
+| `template/template_generic_java_z_j_gw_a_lo.yaml` | Generic JVM template v1.0.6 (Zabbix 7.4 export) |
 | `install.sh` | Install script v1.0.0 |
 | **Discovery examples** (copy and adapt) | |
 | `examples/discovery.game-servers.example.sh` | Multi-instance game-server pattern v1.0.1 (base doc §4.4) |
